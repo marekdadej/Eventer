@@ -1,6 +1,89 @@
 ﻿@{
-    ViewData["Title"] = "Privacy Policy";
+    ViewData["Title"] = "Polityka Prywatności";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<div class="container py-4">
+    <h1 class="mb-4">@ViewData["Title"]</h1>
+
+    <p class="lead">
+        Niniejsza Polityka Prywatności określa zasady przetwarzania i ochrony danych osobowych przekazanych przez Użytkowników
+        w związku z korzystaniem z aplikacji <strong>Eventer</strong>.
+    </p>
+
+    <hr class="my-4" />
+
+    <section class="mb-5">
+        <h3>1. Administrator Danych Osobowych</h3>
+        <p>
+            Administratorem danych osobowych zawartych w serwisie jest autor aplikacji:
+            <strong>Marek "Hunti" Dadej</strong>.
+            <br />
+            Projekt został zrealizowany w celach edukacyjnych jako praca inżynierska.
+            W razie pytań dotyczących ochrony prywatności, prosimy o kontakt pod adresem e-mail:
+            <a href="mailto:marek.dadej03@gmail.com">marek.dadej03@gmail.com</a>.
+        </p>
+    </section>
+
+    <section class="mb-5">
+        <h3>2. Jakie dane zbieramy?</h3>
+        <p>W ramach działania aplikacji zbieramy wyłącznie dane niezbędne do świadczenia usług drogą elektroniczną:</p>
+        <ul>
+            <li><strong>Adres e-mail:</strong> Wykorzystywany do logowania, rejestracji oraz odzyskiwania hasła.</li>
+            <li><strong>Hasło:</strong> Przechowywane w formie zaszyfrowanej (skrót kryptograficzny), niemożliwej do odczytania przez administratora.</li>
+            <li><strong>Dane techniczne:</strong> Adres IP, informacje o przeglądarce oraz pliki cookies (ciasteczka) niezbędne do utrzymania sesji użytkownika.</li>
+        </ul>
+    </section>
+
+    <section class="mb-5">
+        <h3>3. Cel przetwarzania danych</h3>
+        <p>Dane osobowe Użytkowników przetwarzane są w celu:</p>
+        <ul>
+            <li>Umożliwienia rejestracji i logowania w systemie.</li>
+            <li>Zapewnienia bezpieczeństwa sesji i zapobiegania nieautoryzowanemu dostępowi.</li>
+            <li>Realizacji funkcjonalności aplikacji (np. zarządzanie wydarzeniami).</li>
+        </ul>
+    </section>
+
+    <section class="mb-5">
+        <h3>4. Pliki Cookies (Ciasteczka)</h3>
+        <p>
+            Strona wykorzystuje pliki cookies (tzw. ciasteczka), które są zapisywane na urządzeniu końcowym Użytkownika.
+            Stosujemy głównie:
+        </p>
+        <ul>
+            <li><strong>Cookies sesyjne:</strong> Niezbędne do utrzymania sesji zalogowanego użytkownika (aby nie trzeba było logować się na każdej podstronie).</li>
+            <li><strong>Cookies bezpieczeństwa:</strong> Służące do weryfikacji autentyczności żądań (Antiforgery Token).</li>
+        </ul>
+        <p class="text-muted small">
+            Użytkownik może w każdej chwili zmienić ustawienia dotyczące plików cookies w swojej przeglądarce internetowej,
+            jednak wyłączenie ich może uniemożliwić zalogowanie się do aplikacji.
+        </p>
+    </section>
+
+    <section class="mb-5">
+        <h3>5. Bezpieczeństwo danych</h3>
+        <p>
+            Dokładamy wszelkich starań, aby chronić dane Użytkowników. Hasła są haszowane przy użyciu nowoczesnych algorytmów
+            zgodnych ze standardami ASP.NET Core Identity. Komunikacja z serwerem powinna odbywać się za pośrednictwem bezpiecznego protokołu SSL (HTTPS).
+        </p>
+    </section>
+
+    <section class="mb-5">
+        <h3>6. Prawa Użytkownika (RODO)</h3>
+        <p>Każdemu Użytkownikowi przysługują następujące prawa:</p>
+        <ul>
+            <li>Prawo dostępu do treści swoich danych.</li>
+            <li>Prawo do sprostowania (poprawiania) swoich danych (dostępne w panelu "Zarządzaj kontem").</li>
+            <li>Prawo do usunięcia danych ("prawo do bycia zapomnianym").</li>
+            <li>Prawo do wniesienia skargi do organu nadzorczego, jeśli uzna, że przetwarzanie danych narusza przepisy RODO.</li>
+        </ul>
+    </section>
+
+    <section class="mb-5">
+        <h3>7. Postanowienia końcowe</h3>
+        <p>
+            Administrator zastrzega sobie prawo do wprowadzania zmian w Polityce Prywatności.
+            Ponieważ aplikacja jest projektem inżynierskim, dane mogą być okresowo usuwane lub resetowane w ramach prac konserwacyjnych.
+        </p>
+    </section>
+</div>
