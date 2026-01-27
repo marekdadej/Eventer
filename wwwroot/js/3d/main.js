@@ -5,12 +5,9 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 // IMPORTS - SYSTEMY KONSTRUKCYJNE
 // =============================================================================
 
-// Systemy znajdujące się w tym samym folderze co main.js (folder '3d')
 import { ProlyteMPT } from './ProlyteMPT.js';
 import { StageFloorSystem } from './StageFloorSystem.js';
 import { FohSystem } from './FohSystem.js';
-
-// Systemy Layher (folder '3d/layher')
 import { LayherRoof } from './layher/LayherRoof.js';
 
 // =============================================================================
@@ -69,7 +66,8 @@ class App3D {
         // 2. Renderer
         this.renderer = new THREE.WebGLRenderer({ 
             antialias: RENDER_SETTINGS.antialias, 
-            preserveDrawingBuffer: true 
+            preserveDrawingBuffer: true,
+            alpha: true
         });
         this.renderer.setSize(this.width, this.height);
         this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -94,13 +92,13 @@ class App3D {
         this.setupEnvironment('mono');
 
         // 5. Event Listeners
-        window.addEventListener('resize', this.onResize.bind(this));
+        this.resizeObserver = new ResizeObserver(() => this.onResize());
+        this.resizeObserver.observe(this.container);
     }
 
     setupEnvironment(mode = 'mono') {
         this.currentEnv = mode;
 
-        // Sprzątanie
         if (this.ground) {
             this.scene.remove(this.ground);
             if (this.ground.geometry) this.ground.geometry.dispose();
@@ -112,19 +110,17 @@ class App3D {
             this.grid = null;
         }
         
-        // Reset świateł środowiskowych
         if (this.lights.hemi) this.scene.remove(this.lights.hemi);
         if (this.lights.dir) this.scene.remove(this.lights.dir);
 
         const planeGeo = new THREE.PlaneGeometry(400, 400);
 
         if (mode === 'natural') {
-            // --- TRYB NATURALNY ---
             this.scene.background = new THREE.Color(0x87ceeb);
             this.scene.fog = new THREE.FogExp2(0x87ceeb, 0.0015);
 
             const groundMat = new THREE.MeshStandardMaterial({
-                color: 0x3d8c40,
+                color: 0x228940,
                 roughness: 0.9,
                 metalness: 0.0
             });
@@ -135,24 +131,16 @@ class App3D {
             this.scene.add(this.ground);
 
             const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
-            hemi.position.set(0, 100, 0);
             this.scene.add(hemi);
             this.lights.hemi = hemi;
 
             const dir = new THREE.DirectionalLight(0xffeebb, 2.5);
             dir.position.set(60, 100, 60);
             dir.castShadow = true;
-            dir.shadow.camera.left = -100;
-            dir.shadow.camera.right = 100;
-            dir.shadow.camera.top = 100;
-            dir.shadow.camera.bottom = -100;
-            dir.shadow.mapSize.width = 4096;
-            dir.shadow.mapSize.height = 4096;
             this.scene.add(dir);
             this.lights.dir = dir;
 
         } else {
-            // --- TRYB STUDIO (MONO) ---
             this.scene.background = new THREE.Color(RENDER_SETTINGS.clearColor);
             this.scene.fog = new THREE.Fog(RENDER_SETTINGS.clearColor, 30, 200);
 
@@ -172,19 +160,12 @@ class App3D {
             this.scene.add(this.grid);
 
             const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
-            hemi.position.set(0, 50, 0);
             this.scene.add(hemi);
             this.lights.hemi = hemi;
 
             const dir = new THREE.DirectionalLight(0xffdfba, 1.5);
             dir.position.set(30, 50, 20);
             dir.castShadow = true;
-            dir.shadow.camera.left = -50;
-            dir.shadow.camera.right = 50;
-            dir.shadow.camera.top = 50;
-            dir.shadow.camera.bottom = -50;
-            dir.shadow.mapSize.width = 4096;
-            dir.shadow.mapSize.height = 4096;
             this.scene.add(dir);
             this.lights.dir = dir;
         }
@@ -193,9 +174,7 @@ class App3D {
     resetSystems() {
         Object.values(this.systems).forEach(system => {
             if (system) {
-                // Jeśli system ma metodę clear() (np. do dispose geometrii)
                 if (typeof system.clear === 'function') system.clear();
-                // Usunięcie grupy ze sceny
                 if (system.group) this.scene.remove(system.group);
             }
         });
@@ -203,110 +182,111 @@ class App3D {
     }
 
     updateScene(data) {
-        console.log("Aktualizacja sceny - Dane:", data);
-
         this.resetSystems();
 
-        const mainType = data.MainType || 'stageWithRoof';
+        // Helper do pobierania wartości niezależnie od wielkości liter (zabezpieczenie)
+        const getVal = (key) => {
+            return data[key] !== undefined ? data[key] : data[key.charAt(0).toLowerCase() + key.slice(1)];
+        };
 
-        // Aktualizacja środowiska
-        const env = data.envMode || 'mono';
+        // --- POPRAWKA: Helper do Boolean (FormData przesyła stringi "true"/"false") ---
+        const getBool = (key) => {
+            let val = getVal(key);
+            if (val === true || val === 'true') return true;
+            return false;
+        };
+
+        const mainType = getVal('MainType') || 'stageWithRoof';
+
+        // Środowisko
+        const env = getVal('EnvMode') || 'mono';
         if (env !== this.currentEnv) {
             this.setupEnvironment(env);
         }
 
         // --- KONFIGURACJA PODSTAWOWA ---
         const stageConfig = {
-            width: parseFloat(data.StageWidth) || 12.42,
-            depth: parseFloat(data.StageDepth) || 10.35,
-            height: parseFloat(data.StageHeight) || 1.5,
-            floorType: data.floorType || 'layher'
+            width: parseFloat(getVal('StageWidth')) || 10.35,
+            depth: parseFloat(getVal('StageDepth')) || 8.28,
+            height: parseFloat(getVal('StageHeight')) || 1.5,
+            floorType: getVal('FloorType') || 'layher'
         };
 
-        // Zawsze budujemy podłogę
         this.systems.floor = new StageFloorSystem(this.scene);
         this.systems.floor.build(stageConfig);
 
         // --- GŁÓWNA LOGIKA KONSTRUKCJI ---
         if (mainType === 'stageWithRoof' || mainType === 'stageNoRoof') {
-            const includeRoof = mainType === 'stageWithRoof' || data.includeRoof === true;
+            const includeRoof = mainType === 'stageWithRoof' || getBool('IncludeRoof');
 
             // Dach
             if (includeRoof) {
-                const roofType = data.roofType || 'prolyte';
+                const roofType = getVal('RoofType') || 'prolyte';
+
+                // --- POPRAWKA: Ujednolicona flaga dla siatek ---
+                // Sprawdzamy nową flagę hasScrim, a jak jej nie ma (stary kod), to sprawdzamy konkretne
+                const showScrim = data.hasScrim !== undefined 
+                    ? (data.hasScrim === true || data.hasScrim === 'true')
+                    : (getBool('prolyteScrim') || getBool('layherScrim'));
 
                 if (roofType === 'prolyte') {
                     this.systems.roof = new ProlyteMPT(this.scene);
                     this.systems.roof.build({
                         width: stageConfig.width + 2,
                         depth: stageConfig.depth + 2,
-                        height: parseFloat(data.roofClearance) || 7.0,
-                        variant: data.prolyteVariant || 'ground',
-                        hasScrim: data.prolyteScrim === true,
-                        addBallast: data.showMausery === true
+                        height: parseFloat(getVal('RoofClearance')) || 7.0,
+                        variant: getVal('ProlyteVariant') || 'standard',
+                        hasScrim: showScrim, // Poprawione przekazywanie flagi
+                        addBallast: getBool('addBallast')
                     });
                 } else if (roofType === 'layher') {
-                    // LayherRoof importowany z ./layher/LayherRoof.js
                     this.systems.roof = new LayherRoof(this.scene);
-                    // Opcjonalnie: ustawienie pozycji Y dachu, jeśli nie jest to obsłużone wewnątrz klasy
+                    // Pozycjonowanie dachu na wysokości sceny
                     this.systems.roof.group.position.y = stageConfig.height;
                     
                     this.systems.roof.build({
                         width: stageConfig.width,
                         depth: stageConfig.depth,
-                        height: parseFloat(data.roofClearance) || 7.0
+                        height: stageConfig.height, // Ważne dla barierek
+                        hasScrim: showScrim // Poprawione przekazywanie flagi
                     });
                 }
             }
 
             // FOH
-            if (data.includeFoh === true) {
+            if (getBool('includeFoh')) {
                 this.systems.foh = new FohSystem(this.scene);
                 this.systems.foh.build({
-                    width: parseFloat(data.fohWidth) || 4.14,
-                    depth: parseFloat(data.fohDepth) || 4.14,
-                    level: data.fohType === 'twoStory' ? 2 : 1,
-                    dist: parseFloat(data.fohDist) || 20,
-                    scrim: data.fohScrim === true,
-                    hasTower: data.fohTower === true,
-                    towerDepth: parseFloat(data.towerDepth) || 4.14,
-                    towerOffset: parseFloat(data.towerOffset) || 0
+                    width: parseFloat(getVal('FohWidth')) || 4.14,
+                    depth: parseFloat(getVal('FohDepth')) || 4.14,
+                    level: getVal('FohType') === 'twoStory' ? 2 : (getVal('FohType') === 'threeStory' ? 3 : 1),
+                    dist: parseFloat(getVal('FohDist')) || 20,
+                    scrim: getBool('fohScrim'),
+                    hasTower: getBool('fohTower'),
+                    towerDepth: parseFloat(getVal('TowerDepth')) || 4.14,
+                    towerHeight: parseFloat(getVal('TowerHeight')) || 6.0,
+                    showMausery: getBool('showMausery')
                 });
             }
-
-        } else if (mainType === 'layherTower') {
-            // Przykład: sama wieża Layher (nadpisanie konfiguracji)
-            stageConfig.height = 10.0; // Przykładowa wysokość
-            // Tutaj można wywołać specyficzny builder dla wieży, jeśli istnieje
-            this.systems.floor.build(stageConfig); // Tymczasowo używamy floorSystem
-            
-        } else if (mainType === 'ledWall') {
-            // Konstrukcja pod LED
-            stageConfig.width = 14.49;
-            stageConfig.depth = 2.07;
-            stageConfig.height = 8.0;
-            this.systems.floor.build(stageConfig);
         }
 
         this.fitCameraToScene();
     }
 
     fitCameraToScene() {
-        // Obliczanie BoundingBox dla całej sceny
-        // Uwaga: Może obejmować ziemię/siatkę jeśli nie są ignorowane
-        // Lepiej byłoby liczyć bbox tylko dla this.systems.*.group
         const box = new THREE.Box3();
+        let hasObjects = false;
         
         Object.values(this.systems).forEach(sys => {
             if (sys && sys.group) {
                 box.expandByObject(sys.group);
+                hasObjects = true;
             }
         });
 
-        if (box.isEmpty()) {
-            // Fallback, jeśli scena pusta
+        if (!hasObjects) {
             this.camera.position.set(30, 20, 40);
-            this.controls.target.set(0, 5, 0);
+            this.controls.target.set(0, 0, 0);
             this.controls.update();
             return;
         }
@@ -314,23 +294,27 @@ class App3D {
         const size = box.getSize(new THREE.Vector3());
         const center = box.getCenter(new THREE.Vector3());
         
-        // Dopasowanie kamery
         const maxDim = Math.max(size.x, size.y, size.z);
         const fov = this.camera.fov * (Math.PI / 180);
         let distance = Math.abs(maxDim / (2 * Math.tan(fov / 2)));
-        distance *= 1.5; // Margines
+        distance *= 1.5; 
 
-        const direction = new THREE.Vector3()
-            .subVectors(this.camera.position, this.controls.target)
-            .normalize()
-            .multiplyScalar(distance);
+        const direction = new THREE.Vector3(1, 0.6, 1).normalize();
+        const newPos = center.clone().add(direction.multiplyScalar(distance));
 
         this.controls.target.copy(center);
-        this.camera.position.copy(center).add(direction);
+        this.camera.position.copy(newPos);
         this.controls.update();
     }
 
+    toggleGrid() {
+        if (this.grid) {
+            this.grid.visible = !this.grid.visible;
+        }
+    }
+
     onResize() {
+        if (!this.container) return;
         this.width = this.container.clientWidth;
         this.height = this.container.clientHeight;
         this.camera.aspect = this.width / this.height;
@@ -351,14 +335,13 @@ class App3D {
 }
 
 // =============================================================================
-// EXPORTS & BRIDGE (Dla komunikacji z UI)
+// EXPORTS
 // =============================================================================
 
 export function initApp(containerId) {
     if (app) return;
     try {
         app = new App3D(containerId);
-        console.log("3D Engine Initialized.");
     } catch (e) {
         console.error("3D Engine Init Error:", e);
     }
@@ -376,4 +359,12 @@ export function getScreenshot() {
 export function setEnvironment(mode) {
     if (!app) return;
     app.setupEnvironment(mode);
+}
+
+export function resetCamera() {
+    if (app) app.fitCameraToScene();
+}
+
+export function toggleGrid() {
+    if (app) app.toggleGrid();
 }

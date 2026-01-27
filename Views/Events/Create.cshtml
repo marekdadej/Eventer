@@ -1,738 +1,718 @@
 @model Eventer.Models.Event
 
 @{
-    ViewData["Title"] = "Eventer 3D Studio - Ultimate Configurator";
-    Layout = null;
+    ViewData["Title"] = "Eventer 3D Studio - Kreator";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"]</title>
+<style>
+    /* 1. RESET KONTENERA LAYOUTU */
+    .container {
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
     
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    main.pb-3 { padding-bottom: 0 !important; }
 
-    <!script type="importmap">
-        {
-            "imports": {
-                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-                "three/examples/jsm/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-            }
-        }
-    </!script>
+    /* 2. GŁÓWNY UKŁAD WORKSPACE */
+    .workspace {
+        height: calc(100vh - 130px); 
+        display: flex;
+        overflow: hidden;
+        position: relative;
+        background-color: #121212;
+    }
 
-    <style>
-        :root {
-            --bg-dark: #121212;
-            --bg-panel: #1e1e1e;
-            --bg-input: #2d2d2d;
-            --accent: #ffc107;
-            --accent-hover: #ffca2c;
-            --text-main: #e0e0e0;
-            --text-muted: #a0a0a0;
-            --border: #333;
-            --radius: 6px;
-            --transition: all 0.2s ease;
-        }
+    :root {
+        --bg-panel: #1e1e1e;
+        --bg-input: #2d2d2d;
+        --accent: #ffc107;
+        --accent-hover: #ffca2c;
+        --text-main: #e0e0e0;
+        --text-muted: #a0a0a0;
+        --border: #333;
+        --radius: 6px;
+        --transition: all 0.2s ease;
+    }
 
-        * { box-sizing: border-box; }
+    /* 3. SIDEBAR (LEWY PANEL) */
+    .sidebar {
+        width: 420px;
+        min-width: 420px;
+        background-color: var(--bg-panel);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        z-index: 10;
+        color: var(--text-main);
+    }
+    .sidebar-scroll { flex: 1; overflow-y: auto; padding: 20px; }
+    .sidebar-footer { padding: 20px; border-top: 1px solid var(--border); background: #252526; }
 
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
+    /* 4. KONFIGURACJA SEKCJI */
+    .config-section {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        margin-bottom: 15px;
+        overflow: hidden;
+        transition: var(--transition);
+    }
+    .config-section.active { border-color: #555; background: rgba(255,255,255,0.04); }
+    
+    .section-header {
+        padding: 14px 15px;
+        background: rgba(0,0,0,0.2);
+        cursor: pointer;
+        display: flex; justify-content: space-between; align-items: center;
+        font-weight: 700; font-size: 0.85rem; text-transform: uppercase;
+        color: var(--text-main); user-select: none;
+    }
+    .section-header:hover { background: rgba(255,255,255,0.05); }
+    .config-section.active .section-header { border-bottom: 1px solid var(--border); color: var(--accent); }
+    .config-section.collapsed .section-content { display: none; }
+    .section-content { padding: 15px; }
 
-        /* HEADER */
-        .app-header {
-            height: 55px;
-            background-color: #181818;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            padding: 0 25px;
-            justify-content: space-between;
-            z-index: 100;
-        }
+    /* 5. FORMULARZE */
+    .form-group { margin-bottom: 18px; }
+    label { display: flex; justify-content: space-between; font-size: 0.8rem; color: #aaa; margin-bottom: 6px; font-weight: 500; }
+    label span.val { color: var(--accent); font-family: monospace; }
+    
+    .form-control, .form-select {
+        width: 100%;
+        background-color: var(--bg-input);
+        border: 1px solid var(--border);
+        color: #fff;
+        padding: 10px 12px;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        transition: var(--transition);
+    }
+    .form-control:focus, .form-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
 
-        .brand { font-weight: 800; font-size: 1.2rem; color: #fff; letter-spacing: 0.5px; display: flex; align-items: center; gap: 12px; }
-        .brand span { color: var(--accent); }
-        .header-actions .btn-header {
-            background: transparent;
-            border: 1px solid var(--border); color: var(--text-muted);
-            padding: 6px 14px; border-radius: var(--radius); font-size: 0.85rem; cursor: pointer;
-            transition: var(--transition); text-decoration: none;
-            display: inline-flex; align-items: center; gap: 8px;
-        }
-        .header-actions .btn-header:hover { background: var(--bg-input); color: #fff; border-color: #666; }
+    .custom-check {
+        display: flex; align-items: center; cursor: pointer;
+        background: rgba(0,0,0,0.2); padding: 10px;
+        border-radius: 4px; border: 1px solid var(--border);
+        transition: var(--transition);
+    }
+    .custom-check:hover { border-color: #666; background: rgba(255,255,255,0.05); }
+    .custom-check input { margin-right: 12px; accent-color: var(--accent); width: 18px; height: 18px; cursor: pointer; }
+    
+    .btn-primary-custom {
+        width: 100%; padding: 14px;
+        background-color: var(--accent); color: #000;
+        border: none; border-radius: var(--radius);
+        font-weight: 800; font-size: 1rem; text-transform: uppercase;
+        cursor: pointer; transition: var(--transition);
+        display: flex; justify-content: center; align-items: center; gap: 10px;
+    }
+    .btn-primary-custom:hover { background-color: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4); }
+    .btn-primary-custom:disabled { opacity: 0.6; cursor: not-allowed; filter: grayscale(1); transform: none; }
 
-        /* LAYOUT */
-        .workspace { flex: 1; display: flex; overflow: hidden; position: relative; }
+    .hidden { display: none !important; }
+    .row-2 { display: flex; gap: 10px; }
+    .col { flex: 1; }
+    .sub-options { margin-left: 10px; margin-top: 10px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 4px; border-left: 2px solid var(--accent); }
+    
+    /* 6. VIEWPORT / SCENA 3D */
+    .viewport-container {
+        flex: 1; position: relative;
+        background-color: #121212;
+        overflow: hidden; width: 100%; height: 100%;
+        padding: 20px;
+        display: flex; align-items: center; justify-content: center;
+    }
 
-        /* SIDEBAR */
-        .sidebar {
-            width: 420px;
-            min-width: 420px; background-color: var(--bg-panel);
-            border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 10;
-        }
-        .sidebar-scroll { flex: 1; overflow-y: auto; padding: 20px; }
-        .sidebar-footer { padding: 20px; border-top: 1px solid var(--border); background: #252526; }
+    .viz-window {
+        position: relative; width: 100%; height: 100%;
+        background-color: #000;
+        border: 1px solid var(--accent);
+        border-radius: 8px;
+        box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        overflow: hidden;
+    }
 
-        /* VIEWPORT (3D) */
-        .viewport-container {
-            flex: 1; position: relative; background-color: #050505; overflow: hidden;
-            width: 100%; height: 100%;
-        }
-        #vizContainer { width: 100%; height: 100%; display: block; outline: none; }
+    #vizContainer { width: 100%; height: 100%; display: block; outline: none; }
 
-        /* CONFIG SECTIONS */
-        .config-section {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid var(--border);
-            border-radius: var(--radius); margin-bottom: 15px; overflow: hidden; transition: var(--transition);
-        }
-        .config-section.active { border-color: #555; background: rgba(255,255,255,0.04); }
-        .section-header {
-            padding: 14px 15px;
-            background: rgba(0,0,0,0.2); cursor: pointer; display: flex;
-            justify-content: space-between; align-items: center; font-weight: 700; font-size: 0.85rem;
-            text-transform: uppercase; color: var(--text-main); user-select: none;
-        }
-        .section-header:hover { background: rgba(255,255,255,0.05); }
-        .config-section.active .section-header { border-bottom: 1px solid var(--border); color: var(--accent); }
-        .config-section.collapsed .section-content { display: none; }
-        .section-content { padding: 15px; }
+    .viewport-toolbar { 
+        position: absolute; top: 20px; left: 20px; 
+        display: flex; gap: 10px; z-index: 50; 
+    }
+    
+    .tool-btn { 
+        width: 40px; height: 40px; 
+        background: rgba(30,30,30,0.85); backdrop-filter: blur(5px); 
+        border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; 
+        color: #fff; display: flex; align-items: center; justify-content: center; 
+        cursor: pointer; transition: var(--transition); 
+    }
+    .tool-btn:hover { background: var(--accent); color: #000; }
+    
+    .status-bar-custom {
+        height: 32px; background-color: var(--bg-panel); border-top: 1px solid var(--border);
+        display: flex; align-items: center; padding: 0 15px;
+        font-size: 0.75rem; color: var(--text-muted);
+        justify-content: space-between; font-family: monospace;
+    }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background-color: #444; }
+    .status-dot.ok { background-color: #4caf50; box-shadow: 0 0 6px #4caf50; }
+    .status-dot.busy { background-color: var(--accent); }
+    
+    .overlay-debug { 
+        position: absolute; bottom: 10px; right: 10px; 
+        background: rgba(0,0,0,0.7); padding: 5px 10px; border-radius: 4px; 
+        font-family: 'Consolas', monospace; font-size: 0.7rem; color: #ccc; 
+        pointer-events: none; 
+    }
 
-        /* FORMS */
-        .form-group { margin-bottom: 18px; }
-        label { display: flex; justify-content: space-between; font-size: 0.8rem; color: #aaa; margin-bottom: 6px; font-weight: 500; }
-        label span.val { color: var(--accent); font-family: monospace; }
-        .form-control, .form-select {
-            width: 100%;
-            background-color: var(--bg-input); border: 1px solid var(--border); color: #fff;
-            padding: 10px 12px; border-radius: 4px; font-size: 0.9rem; transition: var(--transition);
-        }
-        .form-control:focus, .form-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+    /* 7. WALIDACJA - NAPRAWIONA RAMKA */
+    .validation-summary-valid { display: none; } /* Ukrywa gdy brak błędów */
+    .validation-summary-errors {
+        background-color: rgba(255, 68, 68, 0.1);
+        border: 1px solid #ff4444;
+        color: #ff8888;
+        padding: 10px;
+        border-radius: 6px;
+        margin-bottom: 15px;
+        font-size: 0.85rem;
+        display: block;
+    }
+    .validation-summary-errors ul { list-style: none; padding: 0; margin: 0; }
+    .text-danger { color: #ff6666 !important; font-size: 0.8em; margin-top: 4px; display: block; }
+</style>
 
-        /* UI ELEMENTS */
-        .custom-check {
-            display: flex;
-            align-items: center; cursor: pointer; background: rgba(0,0,0,0.2);
-            padding: 10px; border-radius: 4px; border: 1px solid var(--border); transition: var(--transition);
-        }
-        .custom-check:hover { border-color: #666; background: rgba(255,255,255,0.05); }
-        .custom-check input { margin-right: 12px; accent-color: var(--accent); width: 18px; height: 18px; cursor: pointer; }
-        
-        .btn-primary {
-            width: 100%;
-            padding: 14px; background-color: var(--accent); color: #000; border: none;
-            border-radius: var(--radius); font-weight: 800; font-size: 1rem; text-transform: uppercase;
-            cursor: pointer; transition: var(--transition);
-            display: flex; justify-content: center; align-items: center; gap: 10px;
-        }
-        .btn-primary:hover { background-color: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4); }
+<div class="workspace">
+    <aside class="sidebar">
+        <div class="sidebar-scroll">
+            <h4 style="color:white; margin-bottom:15px; font-weight:800;">KONFIGURATOR</h4>
 
-        /* UTILS */
-        .hidden { display: none !important; }
-        .row-2 { display: flex; gap: 10px; }
-        .col { flex: 1; }
-        .conditional-options { margin-top: 10px; }
-        .sub-options { margin-left: 10px; margin-top: 10px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 4px; border-left: 2px solid var(--accent); }
-        
-        .status-bar {
-            height: 32px;
-            background-color: var(--bg-panel); border-top: 1px solid var(--border);
-            display: flex; align-items: center; padding: 0 15px; font-size: 0.75rem; color: var(--text-muted);
-            justify-content: space-between;
-            font-family: monospace;
-        }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; background-color: #444; }
-        .status-dot.ok { background-color: #4caf50; box-shadow: 0 0 6px #4caf50; }
-        .status-dot.busy { background-color: var(--accent); }
+            <form asp-action="@(Model.Id > 0 ? "Edit" : "Create")" method="post" id="configForm">
+                @if(Model.Id > 0) { <input type="hidden" asp-for="Id" /> }
+                
+                <div asp-validation-summary="All"></div>
+                
+                <input type="hidden" id="imageUrlInput" name="ImageUrl" />
 
-        .viewport-toolbar {
-            position: absolute;
-            top: 20px; left: 20px; display: flex; gap: 10px; z-index: 50;
-        }
-        .tool-btn {
-            width: 40px;
-            height: 40px; background: rgba(30,30,30,0.85); backdrop-filter: blur(5px);
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; display: flex;
-            align-items: center; justify-content: center;
-            cursor: pointer; transition: var(--transition);
-        }
-        .tool-btn:hover { background: var(--accent); color: #000; }
-        .overlay-debug {
-            position: absolute;
-            bottom: 20px; right: 20px; background: rgba(0,0,0,0.7);
-            padding: 8px 12px; border-radius: 4px; font-family: 'Consolas', monospace; font-size: 0.75rem; color: #ccc; pointer-events: none;
-        }
-    </style>
-</head>
-<body>
-
-    <header class="app-header">
-        <div class="brand"><i class="bi bi-box-seam-fill" style="color:var(--accent)"></i> EVENTER <span>3D STUDIO</span></div>
-        <div class="header-actions">
-            <a href="/Events" class="btn-header"><i class="bi bi-arrow-left"></i> Wróć</a>
-        </div>
-    </header>
-
-    <div class="workspace">
-        <aside class="sidebar">
-            <div class="sidebar-scroll">
-                <form asp-action="Create" method="post" id="configForm">
-                    <input type="hidden" id="imageUrlInput" name="ImageUrl" />
-
-                    <div class="config-section active">
-                        <div class="section-header" onclick="toggleSection(this)">
-                            <span>1. Projekt</span> <i class="bi bi-chevron-down"></i>
+                <div class="config-section active">
+                    <div class="section-header" onclick="toggleSection(this)">
+                        <span>1. Projekt</span> <i class="bi bi-chevron-down"></i>
+                    </div>
+                    <div class="section-content">
+                        <div class="form-group">
+                            <label>Nazwa wydarzenia <span style="color:red">*</span></label>
+                            <input type="text" asp-for="Name" class="form-control" placeholder="Wpisz nazwę wydarzenia" required />
+                            <span asp-validation-for="Name" class="text-danger"></span>
                         </div>
-                        <div class="section-content">
-                            <div class="form-group">
-                                <label>Nazwa</label>
-                                <input type="text" name="Name" class="form-control" placeholder="Nazwa wydarzenia" required />
-                            </div>
-                            <div class="form-group">
-                                <label>Typ Sceny</label>
-                                <select id="mainType" name="MainType" class="form-select" style="font-weight:bold; border-left:3px solid var(--accent)">
-                                    <option value="stageWithRoof">Scena z dachem</option>
-                                    <option value="stageNoRoof">Scena bez dachu</option>
-                                    <option value="layherTower">Wieża Layher</option>
-                                    <option value="ledWall">Ściana LED</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Środowisko</label>
-                                <select id="envMode" class="form-select">
-                                    <option value="mono">Ciemne Studio</option>
-                                    <option value="natural">Plener (Dzień)</option>
-                                </select>
-                            </div>
+                        <div class="form-group">
+                            <label>Typ Sceny</label>
+                            <select asp-for="MainType" id="mainType" class="form-select" style="font-weight:bold; border-left:3px solid var(--accent)">
+                                <option value="stageWithRoof">Scena z dachem</option>
+                                <option value="stageNoRoof">Scena bez dachu</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Środowisko</label>
+                            <select asp-for="EnvMode" id="envMode" class="form-select">
+                                <option value="mono">Ciemne Studio</option>
+                                <option value="natural">Plener (Dzień)</option>
+                            </select>
                         </div>
                     </div>
+                </div>
 
-                    <div id="sectionStage" class="config-section active">
-                        <div class="section-header" onclick="toggleSection(this)">
-                            <span>2. Podłoga</span> <i class="bi bi-chevron-down"></i>
+                <div id="sectionStage" class="config-section active">
+                    <div class="section-header" onclick="toggleSection(this)">
+                        <span>2. Podłoga</span> <i class="bi bi-chevron-down"></i>
+                    </div>
+                    <div class="section-content">
+                        <div class="form-group">
+                            <label>System Podłogi</label>
+                            <select asp-for="FloorType" id="floorType" class="form-select">
+                                <option value="layher">Layher Event (Podesty)</option>
+                                <option value="peri">Peri (Sklejka)</option>
+                            </select>
                         </div>
-                        <div class="section-content">
+                        <div class="form-group">
+                            <label>Wymiary Sceny</label>
+                            <div class="row-2">
+                                <div class="col">
+                                    <label style="font-size:0.7em">Szerokość</label>
+                                    <select asp-for="StageWidth" id="stageWidth" class="form-select"></select>
+                                </div>
+                                <div class="col">
+                                    <label style="font-size:0.7em">Głębokość</label>
+                                    <select asp-for="StageDepth" id="stageDepth" class="form-select"></select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Wysokość Podłogi <span class="val" id="stageHeight_val">1.5m</span></label>
+                            <input type="range" asp-for="StageHeight" id="stageHeight" min="1.0" max="2.5" step="0.1">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="sectionRoof" class="config-section active">
+                    <div class="section-header" onclick="toggleSection(this)">
+                        <span>3. Zadaszenie</span> <i class="bi bi-chevron-down"></i>
+                    </div>
+                    <div class="section-content">
+                        <label class="custom-check form-group">
+                            <input type="checkbox" asp-for="IncludeRoof" id="includeRoof">
+                            <span>Włącz Dach</span>
+                        </label>
+                        
+                        <div id="roofOptions">
                             <div class="form-group">
-                                <label>System Podłogi</label>
-                                <select id="floorType" name="floorType" class="form-select">
-                                    <option value="layher">Layher Event (Podesty)</option>
-                                    <option value="peri">Peri (Sklejka)</option>
+                                <label>Typ Dachu</label>
+                                <select asp-for="RoofType" id="roofType" class="form-select">
+                                    <option value="prolyte">Prolyte MPT (Kratownica)</option>
+                                    <option value="layher">Layher Keder XL (Plandeka)</option>
                                 </select>
                             </div>
-                            <div class="form-group">
-                                <label>Wymiary Sceny</label>
-                                <div class="row-2">
-                                    <div class="col">
-                                        <label style="font-size:0.7em">Szerokość</label>
-                                        <select id="stageWidth" name="StageWidth" class="form-select"></select>
-                                    </div>
-                                    <div class="col">
-                                        <label style="font-size:0.7em">Głębokość</label>
-                                        <select id="stageDepth" name="StageDepth" class="form-select"></select>
+                            
+                            <div id="prolyteOptions" class="sub-options">
+                                <div class="form-group">
+                                    <label>Wariant Konstrukcji</label>
+                                    <select asp-for="ProlyteVariant" id="prolyteVariant" class="form-select">
+                                        <option value="standard">Standard (Słupy MPT)</option>
+                                        <option value="layher_base">Na bazach Layher</option>
+                                        <option value="suspended">Podwieszany na wieżach</option>
+                                        <option value="frame">Sama Obwiednia (Grid)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Prześwit (Clearance) <span class="val" id="roofClearance_val">7.0m</span></label>
+                                    <input type="range" asp-for="RoofClearance" id="roofClearance" min="5" max="12" step="0.5">
+                                </div>
+                                <div class="form-group">
+                                    <label class="custom-check">
+                                        <input type="checkbox" asp-for="ProlyteScrim" id="prolyteScrim">
+                                        <span>Siatki boczne</span>
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label class="custom-check">
+                                        <input type="checkbox" asp-for="AddBallast" id="addBallast">
+                                        <span>Balasty (Mausery)</span>
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label>Wingi (PA Wings)</label>
+                                    <div class="row-2">
+                                        <div class="col">
+                                            <select asp-for="WingWidthBays" id="wingWidthBays" class="form-select">
+                                                <option value="0">Brak</option>
+                                                <option value="1">2.07 m</option>
+                                                <option value="2">4.14 m</option>
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+
+                            <div id="layherOptions" class="sub-options hidden">
+                                <div class="form-group">
+                                    <label class="custom-check">
+                                        <input type="checkbox" asp-for="LayherScrim" id="layherScrim">
+                                        <span>Pełne siatki (Tył/Boki)</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="sectionFoh" class="config-section active">
+                    <div class="section-header" onclick="toggleSection(this)">
+                        <span>4. FOH (Reżyserka)</span> <i class="bi bi-chevron-down"></i>
+                    </div>
+                    <div class="section-content">
+                        <label class="custom-check form-group">
+                            <input type="checkbox" asp-for="IncludeFoh" id="includeFoh">
+                            <span>Włącz FOH</span>
+                        </label>
+                        
+                        <div id="fohOptions" class="conditional-options hidden">
                             <div class="form-group">
-                                <label>Wysokość Podłogi <span class="val" id="stageHeight_val">1.5m</span></label>
-                                <input type="range" id="stageHeight" name="StageHeight" min="1.0" max="2.5" step="0.1" value="1.5">
+                                <label>Typ Konstrukcji</label>
+                                <select asp-for="FohType" id="fohType" class="form-select">
+                                    <option value="ground">Parterowy (1 poziom)</option>
+                                    <option value="twoStory">Piętrowy (2 poziomy)</option>
+                                    <option value="threeStory">Trzypiętrowy (3 poziomy)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Szerokość FOH</label>
+                                <select asp-for="FohWidth" id="fohWidth" class="form-select">
+                                    <option value="2.07">2.07m</option>
+                                    <option value="4.14">4.14m</option>
+                                    <option value="6.21">6.21m</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Głębokość FOH</label>
+                                <select asp-for="FohDepth" id="fohDepth" class="form-select">
+                                    <option value="2.07">2.07m</option>
+                                    <option value="4.14">4.14m</option>
+                                    <option value="6.21">6.21m</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Odległość od sceny <span class="val" id="fohDist_val">20m</span></label>
+                                <input type="range" asp-for="FohDist" id="fohDist" min="10" max="50" step="1">
+                            </div>
+                            
+                            <div class="form-group" style="margin-top: 20px; border-top: 1px solid #333; padding-top: 15px;">
+                                <label class="custom-check">
+                                    <input type="checkbox" asp-for="FohTower" id="fohTower">
+                                    <span>Wieża Delay (Tył FOH)</span>
+                                </label>
+                            </div>
+                            
+                            <div id="towerOptions" class="sub-options hidden">
+                                <div class="form-group">
+                                    <label>Głębokość Wieży</label>
+                                    <select asp-for="TowerDepth" id="towerDepth" class="form-select">
+                                        <option value="2.07">2.07 m (1 klatka)</option>
+                                        <option value="4.14">4.14 m (2 klatki)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Wysokość Wieży <span class="val" id="towerHeight_val">6.0m</span></label>
+                                    <input type="range" asp-for="TowerHeight" id="towerHeight" min="4.0" max="16.0" step="0.5">
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label class="custom-check">
-                                    <input type="checkbox" id="showMausery" name="showMausery">
+                                    <input type="checkbox" asp-for="ShowMausery" id="showMausery">
                                     <span>Pokaż Mausery (balast)</span>
                                 </label>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <div id="sectionRoof" class="config-section active">
-                        <div class="section-header" onclick="toggleSection(this)">
-                            <span>3. Zadaszenie</span> <i class="bi bi-chevron-down"></i>
-                        </div>
-                        <div class="section-content">
-                            <label class="custom-check form-group">
-                                <input type="checkbox" id="includeRoof" name="includeRoof" checked>
-                                <span>Włącz Dach</span>
-                            </label>
-                            
-                            <div id="roofOptions">
-                                <div class="form-group">
-                                    <label>Typ Dachu</label>
-                                    <select id="roofType" name="roofType" class="form-select">
-                                        <option value="prolyte">Prolyte MPT (Kratownica)</option>
-                                        <option value="layher">Layher Keder XL (Plandeka)</option>
-                                    </select>
-                                </div>
-                                
-                                <div id="prolyteOptions" class="sub-options">
-                                    <div class="form-group">
-                                        <label>Wariant Konstrukcji</label>
-                                        <select id="prolyteVariant" name="prolyteVariant" class="form-select">
-                                            <option value="standard" selected>Standard (Słupy MPT)</option>
-                                            <option value="layher_base">Na bazach Layher</option>
-                                            <option value="suspended">Podwieszany na wieżach</option>
-                                            <option value="frame">Sama Obwiednia (Grid)</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Prześwit (Clearance) <span class="val" id="roofClearance_val">7.0m</span></label>
-                                        <input type="range" id="roofClearance" name="roofClearance" min="5" max="12" step="0.5" value="7.0">
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="custom-check">
-                                            <input type="checkbox" id="prolyteScrim" name="prolyteScrim" checked>
-                                            <span>Siatki boczne</span>
-                                        </label>
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="custom-check">
-                                            <input type="checkbox" id="addBallast" name="addBallast">
-                                            <span>Balasty (Mausery)</span>
-                                        </label>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Wingi (PA Wings)</label>
-                                        <div class="row-2">
-                                            <div class="col">
-                                                <select id="wingWidthBays" name="wingWidthBays" class="form-select">
-                                                    <option value="0">Brak</option>
-                                                    <option value="1">2.07 m</option>
-                                                    <option value="2">4.14 m</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div id="layherOptions" class="sub-options hidden">
-                                    <div class="form-group">
-                                        <label>Wysokość słupa (przód)</label>
-                                        <select id="layherRoofHeight" name="layherRoofHeight" class="form-select">
-                                            <option value="2.5">2.5 m</option>
-                                            <option value="3.0" selected>3.0 m</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Spadek dachu</label>
-                                        <select id="layherRoofSlope" name="layherRoofSlope" class="form-select">
-                                            <option value="0.5">0.5 m (Standard)</option>
-                                            <option value="1.0">1.0 m (Stromy)</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="custom-check">
-                                            <input type="checkbox" id="layherScrim" name="layherScrim">
-                                            <span>Pełne siatki (Tył/Boki)</span>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                <div id="sectionExtras" class="config-section active">
+                    <div class="section-header" onclick="toggleSection(this)">
+                        <span>5. Dodatki</span> <i class="bi bi-chevron-down"></i>
                     </div>
-
-                    <div id="sectionFoh" class="config-section active">
-                        <div class="section-header" onclick="toggleSection(this)">
-                            <span>4. FOH (Reżyserka)</span> <i class="bi bi-chevron-down"></i>
+                    <div class="section-content">
+                        <div class="form-group">
+                            <label>Wybieg (Catwalk)</label>
+                            <select asp-for="CatwalkType" id="catwalkType" class="form-select">
+                                <option value="none">Brak</option>
+                                <option value="single">Prosty</option>
+                                <option value="double">Podwójny T</option>
+                            </select>
                         </div>
-                        <div class="section-content">
-                            <label class="custom-check form-group">
-                                <input type="checkbox" id="includeFoh" name="includeFoh">
-                                <span>Włącz FOH</span>
-                            </label>
-                            
-                            <div id="fohOptions" class="conditional-options hidden">
-                                <div class="form-group">
-                                    <label>Typ Konstrukcji</label>
-                                    <select id="fohType" name="fohType" class="form-select">
-                                        <option value="ground">Parterowy (1 poziom)</option>
-                                        <option value="twoStory" selected>Piętrowy (2 poziomy)</option>
-                                        <option value="threeStory">Trzypiętrowy (3 poziomy)</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Szerokość FOH</label>
-                                    <select id="fohWidth" name="fohWidth" class="form-select">
-                                        <option value="2.07">2.07m</option>
-                                        <option value="4.14" selected>4.14m</option>
-                                        <option value="6.21">6.21m</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Głębokość FOH</label>
-                                    <select id="fohDepth" name="fohDepth" class="form-select">
-                                        <option value="2.07">2.07m</option>
-                                        <option value="4.14" selected>4.14m</option>
-                                        <option value="6.21">6.21m</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Odległość od sceny <span class="val" id="fohDist_val">20m</span></label>
-                                    <input type="range" id="fohDist" name="fohDist" min="10" max="50" step="1" value="20">
-                                </div>
-                                
-                                <div class="form-group" style="margin-top: 20px; border-top: 1px solid #333; padding-top: 15px;">
-                                    <label class="custom-check">
-                                        <input type="checkbox" id="fohTower" name="fohTower">
-                                        <span>Wieża Delay (Tył FOH)</span>
-                                    </label>
-                                </div>
-                                
-                                <div id="towerOptions" class="sub-options hidden">
-                                    <div class="form-group">
-                                        <label>Głębokość Wieży</label>
-                                        <select id="towerDepth" name="towerDepth" class="form-select">
-                                            <option value="2.07">2.07 m (1 klatka)</option>
-                                            <option value="4.14">4.14 m (2 klatki)</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Wysokość Wieży <span class="val" id="towerHeight_val">6.0m</span></label>
-                                        <input type="range" id="towerHeight" name="towerHeight" min="4.0" max="16.0" step="0.5" value="6.0">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="sectionExtras" class="config-section active">
-                        <div class="section-header" onclick="toggleSection(this)">
-                            <span>5. Dodatki</span> <i class="bi bi-chevron-down"></i>
-                        </div>
-                        <div class="section-content">
+                        <div id="catwalkOptions" class="sub-options hidden">
                             <div class="form-group">
-                                <label>Wybieg (Catwalk)</label>
-                                <select id="catwalkType" name="catwalkType" class="form-select">
-                                    <option value="none">Brak</option>
-                                    <option value="single">Prosty</option>
-                                    <option value="double">Podwójny T</option>
+                                <label>Długość Wybiegu</label>
+                                <select asp-for="CatwalkDepth" id="catwalkDepth" class="form-select">
+                                    <option value="4.14">4.14 m</option>
+                                    <option value="6.21">6.21 m</option>
+                                    <option value="8.28">8.28 m</option>
                                 </select>
                             </div>
-                            <div id="catwalkOptions" class="sub-options hidden">
-                                <div class="form-group">
-                                    <label>Długość Wybiegu</label>
-                                    <select id="catwalkDepth" name="catwalkDepth" class="form-select">
-                                        <option value="4.14">4.14 m</option>
-                                        <option value="6.21">6.21 m</option>
-                                        <option value="8.28">8.28 m</option>
-                                    </select>
-                                </div>
-                            </div>
+                        </div>
 
+                        <div class="form-group">
+                            <label>Risery boczne (Monitor/Tech)</label>
+                            <select asp-for="RiserCount" id="riserCount" class="form-select">
+                                <option value="0">Brak</option>
+                                <option value="1">1 Riser</option>
+                                <option value="2">2 Risery</option>
+                            </select>
+                        </div>
+                        <div id="riserOptions" class="sub-options hidden">
                             <div class="form-group">
-                                <label>Risery boczne (Monitor/Tech)</label>
-                                <select id="riserCount" name="riserCount" class="form-select">
-                                    <option value="0">Brak</option>
-                                    <option value="1">1 Riser</option>
-                                    <option value="2">2 Risery</option>
+                                <label>Strona</label>
+                                <select asp-for="RiserSide" id="riserSide" class="form-select">
+                                    <option value="left">Lewa (Stage Left)</option>
+                                    <option value="right">Prawa (Stage Right)</option>
+                                    <option value="both">Obie strony</option>
                                 </select>
                             </div>
-                            <div id="riserOptions" class="sub-options hidden">
-                                <div class="form-group">
-                                    <label>Strona</label>
-                                    <select id="riserSide" name="riserSide" class="form-select">
-                                        <option value="left">Lewa (Stage Left)</option>
-                                        <option value="right">Prawa (Stage Right)</option>
-                                        <option value="both">Obie strony</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Wymiary Risera</label>
-                                    <div class="row-2">
-                                        <div class="col">
-                                            <select id="riserWidth" name="riserWidth" class="form-select">
-                                                <option value="2.07">2.07 m</option>
-                                                <option value="4.14">4.14 m</option>
-                                            </select>
-                                        </div>
-                                        <div class="col">
-                                            <select id="riserDepth" name="riserDepth" class="form-select">
-                                                <option value="2.07">2.07 m</option>
-                                                <option value="4.14">4.14 m</option>
-                                            </select>
-                                        </div>
+                            <div class="form-group">
+                                <label>Wymiary Risera</label>
+                                <div class="row-2">
+                                    <div class="col">
+                                        <select asp-for="RiserWidth" id="riserWidth" class="form-select">
+                                            <option value="2.07">2.07 m</option>
+                                            <option value="4.14">4.14 m</option>
+                                        </select>
+                                    </div>
+                                    <div class="col">
+                                        <select asp-for="RiserDepth" id="riserDepth" class="form-select">
+                                            <option value="2.07">2.07 m</option>
+                                            <option value="4.14">4.14 m</option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                </form>
-            </div>
-            <div class="sidebar-footer">
-                <button type="button" id="btnSave" class="btn-primary"><i class="bi bi-floppy2-fill"></i> Zapisz Projekt</button>
-            </div>
-        </aside>
-
-        <main class="viewport-container">
-            <div class="viewport-toolbar">
-                <div class="tool-btn" onclick="resetCamera()"><i class="bi bi-arrows-move"></i></div>
-                <div class="tool-btn" onclick="toggleGrid()"><i class="bi bi-grid-3x3"></i></div>
-            </div>
-            <div id="vizContainer"></div>
-            <div class="overlay-debug"><span id="debugInfo">Init...</span></div>
-        </main>
-    </div>
-
-    <footer class="status-bar">
-        <div class="status-item"><div id="statusDot" class="status-dot busy"></div> <span id="statusText" style="margin-left:8px">Ładowanie...</span></div>
-        <div class="status-item"><span>v4.3 - Layher Roof Special Sizes</span></div>
-    </footer>
-
-    <script type="module">
-        import { initApp, updateSceneData, setEnvironment } from '/js/3d/main.js?v=@DateTime.Now.Ticks';
-        let debounceTimer;
-        let currentMaxStageModules = 15; 
-
-        window.toggleSection = function(el) {
-            el.parentElement.classList.toggle('collapsed');
-        }
-
-        window.resetCamera = function() {
-            console.log("Reset camera requested");
-        }
+            </form>
+        </div>
         
-        window.toggleGrid = function() {
-            console.log("Toggle grid requested");
+        <div class="sidebar-footer">
+            <button type="button" id="btnSave" class="btn-primary-custom"><i class="bi bi-floppy2-fill"></i> Zapisz Projekt</button>
+        </div>
+        
+        <div class="status-bar-custom">
+            <div class="status-item"><div id="statusDot" class="status-dot busy"></div> <span id="statusText" style="margin-left:8px">Ładowanie...</span></div>
+            <div class="status-item"><span>v5.0 Stable</span></div>
+        </div>
+    </aside>
+
+    <main class="viewport-container">
+        <div class="viz-window">
+            <div class="viewport-toolbar">
+                <div class="tool-btn" onclick="resetCamera()" title="Reset Kamery"><i class="bi bi-arrows-move"></i></div>
+                <div class="tool-btn" onclick="toggleGrid()" title="Siatka"><i class="bi bi-grid-3x3"></i></div>
+            </div>
+            
+            <div id="vizContainer"></div>
+            
+            <div class="overlay-debug"><span id="debugInfo">Init...</span></div>
+        </div>
+    </main>
+</div>
+
+<script type="module">
+    import { initApp, updateSceneData, getScreenshot, resetCamera, toggleGrid } from '/js/3d/main.js?v=@DateTime.Now.Ticks';
+    
+    // Eksport do okna dla przycisków HTML
+    window.resetCamera = resetCamera;
+    window.toggleGrid = toggleGrid;
+
+    let debounceTimer;
+    
+    // Dane z modelu (przywracanie przy edycji)
+    const savedStageWidth = @(Model.StageWidth > 0 ? Model.StageWidth.ToString(System.Globalization.CultureInfo.InvariantCulture) : "10.35");
+    const savedStageDepth = @(Model.StageDepth > 0 ? Model.StageDepth.ToString(System.Globalization.CultureInfo.InvariantCulture) : "8.28");
+
+    window.toggleSection = function(el) {
+        el.parentElement.classList.toggle('collapsed');
+    }
+    
+    function debounce(func, timeout = 100) {
+        return (...args) => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => { func.apply(this, args); }, timeout);
+        };
+    }
+
+    // --- OBSŁUGA ZAPISU (POPRAWIONA) ---
+    document.getElementById('btnSave').addEventListener('click', async () => {
+        const btn = document.getElementById('btnSave');
+        const form = document.getElementById('configForm');
+
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
         }
 
-        function debounce(func, timeout = 100) {
-            return (...args) => {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(() => { func.apply(this, args); }, timeout);
-            };
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Zapisywanie...';
+        btn.disabled = true;
+
+        try {
+            const imgData = getScreenshot();
+            const imgInput = document.getElementById('imageUrlInput');
+            
+            // Bezpieczne wstawianie obrazu (nie rzuca błędem jeśli pole jest nullem)
+            if (imgInput) {
+                imgInput.value = imgData || "";
+            }
+            
+            form.submit();
+        } catch (e) {
+            console.error("Save Error", e);
+            alert("Błąd podczas zapisywania: " + e.message);
+            btn.innerHTML = '<i class="bi bi-floppy2-fill"></i> Zapisz Projekt';
+            btn.disabled = false;
         }
+    });
 
-        // ZMODYFIKOWANA FUNKCJA: Obsługuje tryb 'layher_roof' z sztywnymi wymiarami
-        function updateStageOptions(mode, maxModules = 15) {
-            const wSel = document.getElementById('stageWidth');
-            const dSel = document.getElementById('stageDepth');
-            
-            const oldW = parseFloat(wSel.value) || 10.35;
-            const oldD = parseFloat(dSel.value) || 8.28;
+    // --- LOGIKA FORMULARZA ---
+    function updateStageOptions(mode, maxModules = 15, forceW = null, forceD = null) {
+        const wSel = document.getElementById('stageWidth');
+        const dSel = document.getElementById('stageDepth');
+        
+        const currentW = parseFloat(wSel.value);
+        const currentD = parseFloat(dSel.value);
 
-            let opts = "";
-            
-            if (mode === 'layher_roof') {
-                // Specjalny tryb dla dachu Layher: Tylko 2.07, 4.14, 6.21
-                opts += `<option value="2.07">2.07m</option>`;
-                opts += `<option value="4.14">4.14m</option>`;
-                opts += `<option value="6.21">6.21m</option>`;
-            } else {
-                // Tryb Standardowy / Hybrydowy (kroki 1.04m)
-                // Dodajemy opcję 1.04m na początek
-                opts += `<option value="1.04">1.04m</option>`;
-
-                for(let i=1; i<=maxModules; i++) {
-                    // Pełny moduł (np. 2.07, 4.14)
-                    let valFull = (i * 2.07).toFixed(2);
-                    opts += `<option value="${valFull}">${valFull}m</option>`;
-
-                    // Pół-moduł (np. 3.11, 5.18) - dodajemy jeśli nie przekraczamy max
-                    if (i < maxModules) {
-                        let valHalf = (i * 2.07 + 1.04).toFixed(2);
-                        opts += `<option value="${valHalf}">${valHalf}m</option>`;
-                    }
+        let opts = "";
+        if (mode === 'layher_roof') {
+            opts += `<option value="2.07">2.07m</option>`;
+            opts += `<option value="4.14">4.14m</option>`;
+            opts += `<option value="6.21">6.21m</option>`;
+        } else {
+            opts += `<option value="1.04">1.04m</option>`;
+            for(let i=1; i<=maxModules; i++) {
+                let valFull = (i * 2.07).toFixed(2);
+                opts += `<option value="${valFull}">${valFull}m</option>`;
+                if (i < maxModules) {
+                    let valHalf = (i * 2.07 + 1.04).toFixed(2);
+                    opts += `<option value="${valHalf}">${valHalf}m</option>`;
                 }
             }
+        }
 
-            wSel.innerHTML = opts;
-            dSel.innerHTML = opts;
+        wSel.innerHTML = opts;
+        dSel.innerHTML = opts;
 
-            // Przywracanie wartości (najbliższej pasującej)
-            const setSelectValue = (sel, val) => {
-                let found = false;
-                for(let i=0; i<sel.options.length; i++) {
-                    if (Math.abs(parseFloat(sel.options[i].value) - val) < 0.05) {
+        const setSelectValue = (sel, val) => {
+            let found = false;
+            for(let i=0; i<sel.options.length; i++) {
+                if (Math.abs(parseFloat(sel.options[i].value) - val) < 0.05) {
+                    sel.selectedIndex = i;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                if (val > parseFloat(sel.options[sel.options.length-1].value)) sel.selectedIndex = sel.options.length - 1;
+                else for(let i=0; i<sel.options.length; i++) {
+                    if (parseFloat(sel.options[i].value) >= val) {
                         sel.selectedIndex = i;
-                        found = true;
                         break;
                     }
                 }
-                if (!found) {
-                    // Jeśli nie znaleziono idealnej (np. przełączenie z 8.28 na Layher Roof który ma max 6.21),
-                    // wybieramy największą dostępną (ostatnią) lub najbliższą.
-                    if (val > parseFloat(sel.options[sel.options.length-1].value)) {
-                        sel.selectedIndex = sel.options.length - 1;
-                    } else {
-                         // Próba znalezienia pierwszej większej
-                         for(let i=0; i<sel.options.length; i++) {
-                            if (parseFloat(sel.options[i].value) >= val) {
-                                sel.selectedIndex = i;
-                                break;
-                            }
-                        }
-                    }
-                }
-            };
+            }
+        };
 
-            setSelectValue(wSel, oldW);
-            setSelectValue(dSel, oldD);
+        const finalW = (forceW !== null) ? forceW : (isNaN(currentW) ? 10.35 : currentW);
+        const finalD = (forceD !== null) ? forceD : (isNaN(currentD) ? 8.28 : currentD);
+
+        setSelectValue(wSel, finalW);
+        setSelectValue(dSel, finalD);
+    }
+
+    function updateUI() {
+        const type = document.getElementById('mainType').value;
+        const hasRoof = document.getElementById('includeRoof').checked;
+        const roofType = document.getElementById('roofType').value;
+        const hasFoh = document.getElementById('includeFoh').checked;
+        const hasFohTower = document.getElementById('fohTower').checked;
+        const catwalk = document.getElementById('catwalkType').value;
+        const risers = document.getElementById('riserCount').value;
+
+        const isStage = (type === 'stageWithRoof' || type === 'stageNoRoof');
+        document.getElementById('sectionRoof').classList.toggle('hidden', !isStage);
+        document.getElementById('sectionFoh').classList.toggle('hidden', !isStage);
+        document.getElementById('sectionExtras').classList.toggle('hidden', !isStage);
+
+        if(type === 'stageNoRoof') {
+            document.getElementById('includeRoof').checked = false;
+            document.getElementById('includeRoof').disabled = true;
+            document.getElementById('roofOptions').classList.add('hidden');
+        } else if (type === 'stageWithRoof') {
+             document.getElementById('includeRoof').disabled = false;
         }
 
-        // LOGIKA INTERFEJSU
-        function updateUI() {
-            const type = document.getElementById('mainType').value;
-            const floorType = document.getElementById('floorType').value;
-            const hasRoof = document.getElementById('includeRoof').checked;
-            const roofType = document.getElementById('roofType').value;
-            const hasFoh = document.getElementById('includeFoh').checked;
-            const hasFohTower = document.getElementById('fohTower').checked;
-            const catwalk = document.getElementById('catwalkType').value;
-            const risers = document.getElementById('riserCount').value;
+        const stageHeightSlider = document.getElementById('stageHeight');
+        stageHeightSlider.min = 1.0; 
+        let maxStageHeight = 2.5; 
+        if (type === 'stageNoRoof') maxStageHeight = 10.0;
+        else if (hasRoof) {
+            if (roofType === 'layher') maxStageHeight = 10.0;
+            else maxStageHeight = 2.5;
+        }
+        stageHeightSlider.max = maxStageHeight;
+        if (parseFloat(stageHeightSlider.value) > maxStageHeight) stageHeightSlider.value = maxStageHeight;
+        if (parseFloat(stageHeightSlider.value) < 1.0) stageHeightSlider.value = 1.0;
 
-            // 1. Sekcje
-            const isStage = (type === 'stageWithRoof' || type === 'stageNoRoof');
-            document.getElementById('sectionRoof').classList.toggle('hidden', !isStage);
-            document.getElementById('sectionFoh').classList.toggle('hidden', !isStage);
-            document.getElementById('sectionExtras').classList.toggle('hidden', !isStage);
-
-            if(type === 'stageNoRoof') {
-                document.getElementById('includeRoof').checked = false;
-                document.getElementById('roofOptions').classList.add('hidden');
-            } else if (type === 'stageWithRoof') {
-                 document.getElementById('includeRoof').disabled = false;
-            }
-
-            // 2. LIMIT WYSOKOŚCI PODŁOGI
-            const stageHeightSlider = document.getElementById('stageHeight');
-            stageHeightSlider.min = 1.0; 
-
-            let maxStageHeight = 2.5; 
-
-            if (type === 'stageNoRoof') {
-                maxStageHeight = 10.0;
-            } else if (hasRoof) {
-                if (roofType === 'layher') {
-                    maxStageHeight = 10.0;
-                } else {
-                    maxStageHeight = 2.5;
-                }
-            }
-
-            stageHeightSlider.max = maxStageHeight;
-            if (parseFloat(stageHeightSlider.value) > maxStageHeight) {
-                stageHeightSlider.value = maxStageHeight;
-            }
-            if (parseFloat(stageHeightSlider.value) < 1.0) {
-                stageHeightSlider.value = 1.0;
-            }
-
-            // 3. Dach Opcje i WYMIARY SCENY
-            const showRoofOpts = (type === 'stageWithRoof' && hasRoof);
-            document.getElementById('roofOptions').classList.toggle('hidden', !showRoofOpts);
+        const showRoofOpts = (type === 'stageWithRoof' && hasRoof);
+        document.getElementById('roofOptions').classList.toggle('hidden', !showRoofOpts);
+        
+        if(showRoofOpts) {
+            document.getElementById('prolyteOptions').classList.toggle('hidden', roofType !== 'prolyte');
+            document.getElementById('layherOptions').classList.toggle('hidden', roofType !== 'layher');
             
-            if(showRoofOpts) {
-                document.getElementById('prolyteOptions').classList.toggle('hidden', roofType !== 'prolyte');
-                document.getElementById('layherOptions').classList.toggle('hidden', roofType !== 'layher');
-                
-                if (roofType === 'layher') {
-                    // WYMUSZENIE WYMIARÓW DLA LAYHER ROOF (2.07, 4.14, 6.21)
-                    updateStageOptions('layher_roof'); 
-                } else if (roofType === 'prolyte') {
-                    const pVariant = document.getElementById('prolyteVariant').value;
-                    if (pVariant === 'frame') updateStageOptions('standard', 7);
-                    else updateStageOptions('standard', 15);
-                }
-            } else {
-                updateStageOptions('standard', 15);
+            if (roofType === 'layher') {
+                updateStageOptions('layher_roof');
+            } else if (roofType === 'prolyte') {
+                const pVariant = document.getElementById('prolyteVariant').value;
+                if (pVariant === 'frame') updateStageOptions('standard', 7);
+                else updateStageOptions('standard', 15);
             }
-
-            // 4. FOH
-            document.getElementById('fohOptions').classList.toggle('hidden', !hasFoh);
-            document.getElementById('towerOptions').classList.toggle('hidden', !hasFohTower);
-
-            const fohW = parseFloat(document.getElementById('fohWidth').value);
-            const towerHeightSlider = document.getElementById('towerHeight');
-            
-            let maxTowerHeight = 10.0;
-            if (fohW >= 6.0) maxTowerHeight = 20.0;
-            else if (fohW >= 4.0) maxTowerHeight = 16.0;
-            else maxTowerHeight = 10.0;
-            towerHeightSlider.max = maxTowerHeight;
-            if (parseFloat(towerHeightSlider.value) > maxTowerHeight) {
-                towerHeightSlider.value = maxTowerHeight;
-            }
-
-            // 5. Extras
-            document.getElementById('catwalkOptions').classList.toggle('hidden', catwalk === 'none');
-            document.getElementById('riserOptions').classList.toggle('hidden', risers === '0');
-
-            // 6. Labels
-            ['stageHeight', 'roofClearance', 'fohDist', 'towerHeight'].forEach(id => {
-                const el = document.getElementById(id);
-                if(el) document.getElementById(id + '_val').innerText = el.value + 'm';
-            });
+        } else {
+            updateStageOptions('standard', 15);
         }
 
-        function update3D() {
-            updateUI();
-            const formData = new FormData(document.getElementById('configForm'));
-            const data = Object.fromEntries(formData.entries());
-            
-            data.includeRoof = document.getElementById('includeRoof').checked;
-            data.includeFoh = document.getElementById('includeFoh').checked;
-            data.showMausery = document.getElementById('showMausery').checked;
-            data.addBallast = document.getElementById('addBallast').checked;
-            data.fohTower = document.getElementById('fohTower').checked;
-            data.prolyteScrim = document.getElementById('prolyteScrim').checked;
-            data.layherScrim = document.getElementById('layherScrim').checked;
+        document.getElementById('fohOptions').classList.toggle('hidden', !hasFoh);
+        document.getElementById('towerOptions').classList.toggle('hidden', !hasFohTower);
 
-            document.getElementById('statusDot').className = 'status-dot busy';
-            document.getElementById('debugInfo').innerText = `Update: ${new Date().toLocaleTimeString()}`;
+        const fohW = parseFloat(document.getElementById('fohWidth').value);
+        const towerHeightSlider = document.getElementById('towerHeight');
+        let maxTowerHeight = 10.0;
+        if (fohW >= 6.0) maxTowerHeight = 20.0;
+        else if (fohW >= 4.0) maxTowerHeight = 16.0;
+        else maxTowerHeight = 10.0;
+        towerHeightSlider.max = maxTowerHeight;
+        if (parseFloat(towerHeightSlider.value) > maxTowerHeight) towerHeightSlider.value = maxTowerHeight;
 
-            try {
-                updateSceneData(data);
-                document.getElementById('statusDot').className = 'status-dot ok';
-                document.getElementById('statusText').innerText = 'Gotowy';
-            } catch(e) {
-                console.error(e);
-                document.getElementById('statusText').innerText = 'Błąd renderowania';
-            }
-        }
+        document.getElementById('catwalkOptions').classList.toggle('hidden', catwalk === 'none');
+        document.getElementById('riserOptions').classList.toggle('hidden', risers === '0');
 
-        document.addEventListener("DOMContentLoaded", () => {
-            // Initial call - default to standard
-            updateStageOptions('standard', 15); 
-            
-            try {
-                initApp('vizContainer');
-                document.getElementById('statusText').innerText = 'Silnik 3D działa';
-                document.getElementById('statusDot').className = 'status-dot ok';
-            } catch(e) {
-                console.error("Init Error", e);
-                document.getElementById('statusText').innerText = 'Błąd inicjalizacji';
-            }
-
-            const inputs = document.querySelectorAll('input, select');
-            inputs.forEach(el => {
-                el.addEventListener('input', debounce(update3D, 50));
-            });
-
-            // Reagowanie na zmianę typu dachu, aby odświeżyć listę wymiarów
-            document.getElementById('roofType').addEventListener('change', () => {
-                updateUI();
-            });
-
-            document.getElementById('prolyteVariant').addEventListener('change', () => {
-                updateUI();
-            });
-
-            update3D();
+        ['stageHeight', 'roofClearance', 'fohDist', 'towerHeight'].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) document.getElementById(id + '_val').innerText = el.value + 'm';
         });
-    </script>
-</body>
-</html>
+    }
+
+    function update3D() {
+        updateUI();
+        const formData = new FormData(document.getElementById('configForm'));
+        const data = Object.fromEntries(formData.entries());
+        
+        data.includeRoof = document.getElementById('includeRoof').checked;
+        data.includeFoh = document.getElementById('includeFoh').checked;
+        data.showMausery = document.getElementById('showMausery').checked;
+        data.addBallast = document.getElementById('addBallast').checked;
+        data.fohTower = document.getElementById('fohTower').checked;
+        data.prolyteScrim = document.getElementById('prolyteScrim').checked;
+        data.layherScrim = document.getElementById('layherScrim').checked;
+        
+        document.getElementById('statusDot').className = 'status-dot busy';
+        document.getElementById('debugInfo').innerText = `Update: ${new Date().toLocaleTimeString()}`;
+
+        try {
+            updateSceneData(data);
+            document.getElementById('statusDot').className = 'status-dot ok';
+            document.getElementById('statusText').innerText = 'Gotowy';
+        } catch(e) {
+            console.error(e);
+            document.getElementById('statusText').innerText = 'Błąd renderowania';
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        updateStageOptions('standard', 15, savedStageWidth, savedStageDepth); 
+        
+        try {
+            initApp('vizContainer');
+            document.getElementById('statusText').innerText = 'Silnik 3D działa';
+            document.getElementById('statusDot').className = 'status-dot ok';
+        } catch(e) {
+            console.error("Init Error", e);
+            document.getElementById('statusText').innerText = 'Błąd inicjalizacji';
+        }
+
+        const inputs = document.querySelectorAll('input, select');
+        inputs.forEach(el => {
+            el.addEventListener('input', debounce(update3D, 50));
+        });
+
+        document.getElementById('roofType').addEventListener('change', () => { updateUI(); });
+        document.getElementById('prolyteVariant').addEventListener('change', () => { updateUI(); });
+
+        update3D();
+    });
+</script>

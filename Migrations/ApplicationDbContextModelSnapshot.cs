@@ -23,11 +23,29 @@ namespace Eventer.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("AddBallast")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("CatwalkDepth")
+                        .HasColumnType("REAL");
+
+                    b.Property<string>("CatwalkType")
+                        .HasColumnType("TEXT");
+
                     b.Property<double>("Clearance")
                         .HasColumnType("REAL");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("TEXT");
+
+                    b.Property<string>("EnvMode")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FloorType")
+                        .HasColumnType("TEXT");
+
+                    b.Property<double>("FohDepth")
+                        .HasColumnType("REAL");
 
                     b.Property<double>("FohDist")
                         .HasColumnType("REAL");
@@ -41,8 +59,14 @@ namespace Eventer.Migrations
                     b.Property<string>("FohSize")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("FohTower")
+                    b.Property<bool>("FohTower")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("FohType")
                         .HasColumnType("TEXT");
+
+                    b.Property<double>("FohWidth")
+                        .HasColumnType("REAL");
 
                     b.Property<bool>("HasScrim")
                         .HasColumnType("INTEGER");
@@ -50,14 +74,57 @@ namespace Eventer.Migrations
                     b.Property<string>("ImageUrl")
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("IncludeFoh")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IncludeRoof")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("LayherRoofHeight")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("LayherRoofSlope")
+                        .HasColumnType("REAL");
+
+                    b.Property<bool>("LayherScrim")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("MainType")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("ProlyteScrim")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ProlyteVariant")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("RiserCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("RiserDepth")
+                        .HasColumnType("REAL");
+
+                    b.Property<string>("RiserSide")
+                        .HasColumnType("TEXT");
+
+                    b.Property<double>("RiserWidth")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("RoofClearance")
+                        .HasColumnType("REAL");
 
                     b.Property<string>("RoofSystem")
                         .HasColumnType("TEXT");
+
+                    b.Property<string>("RoofType")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("ShowMausery")
+                        .HasColumnType("INTEGER");
 
                     b.Property<double>("StageDepth")
                         .HasColumnType("REAL");
@@ -92,6 +159,51 @@ namespace Eventer.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Events");
+                });
+
+            modelBuilder.Entity("Eventer.Models.Realizacja", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Data")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MiniaturkaUrl")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Nazwa")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Opis")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Realizacje");
+                });
+
+            modelBuilder.Entity("Eventer.Models.ZdjecieRealizacji", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RealizacjaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RealizacjaId");
+
+                    b.ToTable("ZdjeciaRealizacji");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -290,6 +402,17 @@ namespace Eventer.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Eventer.Models.ZdjecieRealizacji", b =>
+                {
+                    b.HasOne("Eventer.Models.Realizacja", "Realizacja")
+                        .WithMany("Galeria")
+                        .HasForeignKey("RealizacjaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Realizacja");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -339,6 +462,11 @@ namespace Eventer.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Eventer.Models.Realizacja", b =>
+                {
+                    b.Navigation("Galeria");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,0 +1,145 @@
+@model Eventer.Models.Realizacja
+
+@{
+    ViewData["Title"] = "Edytuj realizację";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-9">
+            <div class="card shadow border-primary">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3">
+                    <h3 class="mb-0 h4"><i class="bi bi-pencil-square me-2"></i>Edycja: @Model.Nazwa</h3>
+                    <span class="badge bg-white text-primary">ID: @Model.Id</span>
+                </div>
+                
+                <div class="card-body p-4">
+                    <form asp-action="Edit" enctype="multipart/form-data">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        
+                        @* Kluczowe pola ukryte *@
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="MiniaturkaUrl" />
+
+                        <div class="mb-3">
+                            <label asp-for="Nazwa" class="form-label fw-bold">Nazwa wydarzenia</label>
+                            <input asp-for="Nazwa" class="form-control" />
+                            <span asp-validation-for="Nazwa" class="text-danger"></span>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Data" class="form-label fw-bold">Data realizacji</label>
+                                <input asp-for="Data" class="form-control" type="date" />
+                                <span asp-validation-for="Data" class="text-danger"></span>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Aktualna miniaturka</label>
+                                <div class="mb-2">
+                                    <img src="@Model.MiniaturkaUrl" alt="Miniaturka" class="rounded border shadow-sm" style="height: 120px; width: 100%; object-fit: cover;">
+                                </div>
+                                <label asp-for="MiniaturkaFile" class="form-label fw-bold small text-primary">Wgraj nowe zdjęcie główne</label>
+                                <input asp-for="MiniaturkaFile" type="file" class="form-control form-control-sm" accept="image/*" />
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Opis" class="form-label fw-bold">Opis wykonanych prac</label>
+                            <textarea asp-for="Opis" class="form-control" rows="6" placeholder="Szczegółowy opis realizacji..."></textarea>
+                            <span asp-validation-for="Opis" class="text-danger"></span>
+                        </div>
+
+                        <hr class="my-4" />
+                        
+                        @* --- SEKCJA GALERII Z MOŻLIWOŚCIĄ USUWANIA --- *@
+                        <div class="mb-4">
+                            <label class="form-label fw-bold d-block mb-3">Zarządzaj aktualną galerią (kliknij X aby usunąć):</label>
+                            <div class="d-flex flex-wrap gap-3 bg-light p-3 rounded border shadow-inner" id="gallery-container">
+                                @if (Model.Galeria != null && Model.Galeria.Any())
+                                {
+                                    foreach (var foto in Model.Galeria)
+                                    {
+                                        <div class="position-relative gallery-item-edit" id="photo-wrapper-@foto.Id">
+                                            <img src="@foto.Url" class="rounded shadow-sm border" style="width: 110px; height: 110px; object-fit: cover;" />
+                                            <button type="button" 
+                                                    class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 shadow" 
+                                                    style="line-height: 1; padding: 2px 6px; border-radius: 50%;"
+                                                    onclick="deletePhoto(@foto.Id)"
+                                                    title="Usuń to zdjęcie">
+                                                &times;
+                                            </button>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="text-muted small italic w-100 text-center py-3">Brak dodatkowych zdjęć w galerii.</div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="GaleriaFiles" class="form-label fw-bold text-primary">Dodaj kolejne zdjęcia do galerii</label>
+                            <input asp-for="GaleriaFiles" type="file" class="form-control" multiple accept="image/*" />
+                            <div class="form-text">Nowo wybrane pliki zostaną dopisane do Twojej obecnej galerii.</div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-5 pt-3 border-top">
+                            <a asp-action="Index" class="btn btn-outline-secondary px-4">Anuluj zmiany</a>
+                            <button type="submit" class="btn btn-primary px-5 shadow fw-bold">Zapisz wszystkie zmiany</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .gallery-item-edit {
+        transition: transform 0.2s;
+    }
+    .gallery-item-edit:hover {
+        transform: scale(1.05);
+    }
+    .shadow-inner {
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+    }
+</style>
+
+@section Scripts {
+    <script>
+        /**
+         * Funkcja usuwająca pojedyncze zdjęcie z galerii przez AJAX
+         */
+        async function deletePhoto(photoId) {
+            if (!confirm("Czy na pewno chcesz bezpowrotnie usunąć to zdjęcie z serwera?")) return;
+
+            try {
+                // Wysyłamy żądanie POST do nowej metody w kontrolerze
+                const response = await fetch(`/Realizacje/UsunZdjecie/${photoId}`, {
+                    method: 'POST',
+                    headers: {
+                        // Pobieramy token anty-fałszerski z formularza
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    }
+                });
+
+                if (response.ok) {
+                    // Usuwamy element z widoku po udanym skasowaniu w bazie i na dysku
+                    const element = document.getElementById(`photo-wrapper-${photoId}`);
+                    element.style.opacity = '0';
+                    setTimeout(() => element.remove(), 300);
+                } else {
+                    alert("Wystąpił błąd podczas usuwania zdjęcia. Spróbuj ponownie.");
+                }
+            } catch (error) {
+                console.error("Błąd AJAX:", error);
+                alert("Nie udało się połączyć z serwerem.");
+            }
+        }
+    </script>
+    
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

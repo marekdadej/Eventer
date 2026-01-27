@@ -11,5 +11,10 @@ public class ApplicationDbContext : IdentityDbContext
     {
     }
 
+    // Tabela dla ogólnych wydarzeń/kalendarza
     public DbSet<Event> Events { get; set; }
+
+    // Główne tabele dla Twojej nowej galerii realizacji
+    public DbSet<Realizacja> Realizacje { get; set; }
+    public DbSet<ZdjecieRealizacji> ZdjeciaRealizacji { get; set; }
 }

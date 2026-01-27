@@ -1,0 +1,171 @@
+@model Eventer.Models.Realizacja
+
+@{
+    ViewData["Title"] = Model.Nazwa;
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css">
+
+<div class="container mt-5">
+    @* Chlebki z ikoną domu *@
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index" class="text-decoration-none"><i class="bi bi-house-door me-1"></i>Realizacje</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.Nazwa</li>
+        </ol>
+    </nav>
+
+    <div class="row pt-3">
+        <div class="col-lg-4 mb-4">
+            <div class="sticky-top" style="top: 100px; z-index: 10;">
+                <h1 class="fw-bold text-primary">@Model.Nazwa</h1>
+                <p class="text-muted mb-4">
+                    <i class="bi bi-calendar-check me-2"></i><strong>Data:</strong> @Model.Data.ToString("dd MMMM yyyy")
+                </p>
+                
+                <div class="card border-0 bg-light shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="fw-bold border-bottom pb-2 mb-3">O realizacji:</h5>
+                        <p class="card-text text-dark" style="white-space: pre-line; line-height: 1.6;">@Model.Opis</p>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Wróć do listy
+                    </a>
+                    
+                    @if (User.Identity?.IsAuthenticated == true && ViewBag.CzyAdmin == true)
+                    {
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+                            <i class="bi bi-pencil-square me-2"></i>Edytuj realizację
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <h3 class="fw-bold mb-4 border-start border-primary border-4 ps-3">Galeria zdjęć</h3>
+            <div class="row g-3">
+                @if (!string.IsNullOrEmpty(Model.MiniaturkaUrl))
+                {
+                    <div class="col-md-6 col-lg-4">
+                        <div class="gallery-item">
+                            <a href="@Model.MiniaturkaUrl" data-lightbox="event-gallery" data-title="Zdjęcie główne: @Model.Nazwa">
+                                <img src="@Model.MiniaturkaUrl" class="img-fluid rounded shadow-sm gallery-img main-img-highlight" alt="Główne" />
+                                <div class="gallery-overlay"><i class="bi bi-zoom-in"></i></div>
+                            </a>
+                        </div>
+                    </div>
+                }
+
+                @foreach (var foto in Model.Galeria)
+                {
+                    <div class="col-md-6 col-lg-4">
+                        <div class="gallery-item">
+                            <a href="@foto.Url" data-lightbox="event-gallery" data-title="@Model.Nazwa">
+                                <img src="@foto.Url" class="img-fluid rounded shadow-sm gallery-img" alt="Zdjęcie" />
+                                <div class="gallery-overlay"><i class="bi bi-zoom-in"></i></div>
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* --- STYLIZACJA PODGLĄDU NA STRONIE --- */
+    .gallery-item { position: relative; overflow: hidden; border-radius: 8px; background: #000; }
+    .gallery-img { width: 100%; height: 240px; object-fit: cover; transition: transform 0.5s ease; display: block; }
+    .gallery-overlay { 
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+        background: rgba(0, 0, 0, 0.3); display: flex; align-items: center; 
+        justify-content: center; opacity: 0; transition: opacity 0.3s; color: white; font-size: 2rem; 
+    }
+    .gallery-item:hover .gallery-overlay { opacity: 1; }
+    .gallery-item:hover .gallery-img { transform: scale(1.1); }
+    .main-img-highlight { border: 2px solid #007bff; }
+
+    /* --- MODYFIKACJA LIGHTBOX (CZARNE TŁO I POPRAWIONY UKŁAD) --- */
+    
+    .lightboxOverlay { background-color: #000 !important; opacity: 0.95 !important; }
+
+    /* Obniżenie ramki ze zdjęciem, by nie nachodziła na przycisk X */
+    .lightbox {
+        top: 100px !important; 
+        outline: none !important;
+    }
+
+    /* Przycisk X w prawym górnym rogu */
+    .lb-dataContainer {
+        position: fixed !important;
+        top: 25px !important;
+        right: 30px !important;
+        width: auto !important;
+        z-index: 10000 !important;
+    }
+    .lb-closeContainer { float: none !important; }
+    .lb-close {
+        display: block !important;
+        width: 40px !important;
+        height: 40px !important;
+        background: url('https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/images/close.png') no-repeat center !important;
+        background-size: 30px !important;
+        opacity: 0.8;
+        transition: transform 0.2s;
+    }
+    .lb-close:hover { transform: scale(1.2); opacity: 1; }
+
+    /* Strzałki nawigacji na środku bocznych krawędzi */
+    .lb-nav {
+        position: fixed !important;
+        top: 50% !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100px !important;
+        transform: translateY(-50%) !important;
+        pointer-events: none !important;
+    }
+    .lb-prev, .lb-next {
+        width: 65px !important;
+        height: 100px !important;
+        opacity: 0.5 !important;
+        pointer-events: auto !important;
+        transition: opacity 0.3s, transform 0.2s !important;
+    }
+    .lb-prev { position: fixed !important; left: 20px !important; }
+    .lb-next { position: fixed !important; right: 20px !important; }
+
+    /* Ukrycie domyślnych detali (tekstów) pod zdjęciem */
+    .lb-details { display: none !important; }
+    .lb-outerContainer { background-color: #000 !important; border-radius: 4px; }
+
+    @@media (max-width: 991px) {
+        .sticky-top { position: relative !important; top: 0 !important; }
+    }
+</style>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/js/lightbox.min.js"></script>
+    <script>
+        lightbox.option({
+          'resizeDuration': 200,
+          'wrapAround': true,
+          'disableScrolling': true,    
+          'fitImagesInViewport': true, 
+          'positionFromTop': 100,      // Wymusza start zdjęcia 100px od góry ekranu
+          'imageFadeDuration': 300,
+          'fadeDuration': 300
+        });
+
+        // Wymuszenie zamknięcia przez ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === "Escape") {
+                lightbox.end();
+            }
+        });
+    </script>
+}

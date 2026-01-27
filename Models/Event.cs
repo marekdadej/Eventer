@@ -7,37 +7,70 @@ namespace Eventer.Models
     {
         [Key]
         public int Id { get; set; }
+        
+        [Required(ErrorMessage = "Nazwa jest wymagana")]
         public string? Name { get; set; }
+        
         public string? UserId { get; set; }
         public DateTime CreatedDate { get; set; } = DateTime.Now;
         public string? ImageUrl { get; set; }
 
         // --- Główne parametry ---
-        public string? MainType { get; set; }   // stage, tower, wall
-        public string? RoofSystem { get; set; } // prolyte, alustage, layher, none
+        public string? MainType { get; set; }   // stageWithRoof, stageNoRoof, layherTower, ledWall
+        public string? EnvMode { get; set; }    // mono, natural
 
-        // --- Wymiary Sceny ---
+        // --- Podłoga ---
+        public string? FloorType { get; set; }  // layher, peri
         public double StageWidth { get; set; }
         public double StageDepth { get; set; }
         public double StageHeight { get; set; }
-        public double Clearance { get; set; }   // Prześwit dachu
-        public bool HasScrim { get; set; }      // Czy jest siatka
+        public bool ShowMausery { get; set; }
 
-        // --- Wingi (Boki) ---
-        public int WingWidthBays { get; set; }  // Ilość pól na szerokość
-        public int WingDepthBays { get; set; }  // Ilość pól na głębokość
-        public string? WingType { get; set; }   // layher / scrim
+        // --- Dach (Ogólne) ---
+        public bool IncludeRoof { get; set; }
+        public string? RoofType { get; set; }   // prolyte, layher
+        public string? RoofSystem { get; set; } // (Pole legacy - można zostawić dla starych rekordów)
+
+        // --- Opcje Dachu Prolyte ---
+        public string? ProlyteVariant { get; set; } // standard, layher_base, suspended, frame
+        public double RoofClearance { get; set; }
+        public bool ProlyteScrim { get; set; }
+        public bool AddBallast { get; set; }
+        public int WingWidthBays { get; set; }
+        public int WingDepthBays { get; set; }      
+        public string? WingType { get; set; }       
+
+        // --- Opcje Dachu Layher ---
+        public double LayherRoofHeight { get; set; }
+        public double LayherRoofSlope { get; set; }
+        public bool LayherScrim { get; set; }
 
         // --- FOH (Realizatorka) ---
-        public int FohLevel { get; set; }       // 0, 1, 2 piętra
-        public string? FohSize { get; set; }    // np. "4.14|2.07"
-        public double FohDist { get; set; }     // Dystans
-        public bool FohScrim { get; set; }      // Siatki FOH
-        public string? FohTower { get; set; }   // Czy jest wieża delay
+        public bool IncludeFoh { get; set; }
+        public string? FohType { get; set; }    // ground, twoStory, threeStory
+        public double FohWidth { get; set; }
+        public double FohDepth { get; set; }
+        public double FohDist { get; set; }
+        public bool FohScrim { get; set; }
+        public bool FohTower { get; set; }      // Wieża Delay (Checkbox)
 
-        // --- Wieża / Ściana (Inne typy) ---
-        public int TowerWidthBays { get; set; }
-        public double TowerDepth { get; set; }
-        public double TowerHeight { get; set; }
+        // --- Wieże / Inne konstrukcje ---
+        public int TowerWidthBays { get; set; } 
+        public double TowerDepth { get; set; }  
+        public double TowerHeight { get; set; } 
+
+        // --- Dodatki ---
+        public string? CatwalkType { get; set; } // none, single, double
+        public double CatwalkDepth { get; set; }
+        public int RiserCount { get; set; }
+        public string? RiserSide { get; set; }
+        public double RiserWidth { get; set; }
+        public double RiserDepth { get; set; }
+
+        // --- Pola Legacy (Dla kompatybilności) ---
+        public double Clearance { get; set; }   
+        public bool HasScrim { get; set; }      
+        public int FohLevel { get; set; }       
+        public string? FohSize { get; set; }    
     }
 }

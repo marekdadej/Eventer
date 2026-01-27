@@ -1,0 +1,123 @@
+@model IEnumerable<Eventer.Models.Realizacja>
+
+@{
+    ViewData["Title"] = "Nasze Realizacje";
+}
+
+<div class="container mt-5">
+    @* Nagłówek i przycisk dodawania *@
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="display-5 fw-bold text-dark mb-0">Nasze Realizacje</h1>
+            <p class="text-muted">Zobacz, co przygotowaliśmy dla naszych klientów</p>
+        </div>
+        
+        @if (ViewBag.CzyAdmin == true)
+        {
+            <a asp-action="Create" class="btn btn-success btn-lg shadow-sm">
+                <i class="bi bi-plus-circle me-2"></i>Dodaj nową
+            </a>
+        }
+    </div>
+
+    @* Sprawdzenie, czy są jakiekolwiek realizacje *@
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5 border rounded bg-light">
+            <i class="bi bi-camera text-muted display-1"></i>
+            <p class="h4 text-muted mt-3">Obecnie nie mamy żadnych opublikowanych realizacji.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            @foreach (var item in Model)
+            {
+                <div class="col">
+                    <div class="card h-100 shadow-sm gallery-card border-0 overflow-hidden">
+                        
+                        @* Górna część karty - Link do szczegółów *@
+                        <a asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none text-dark card-main-link">
+                            <div class="card-img-container position-relative" style="height: 250px; overflow: hidden;">
+                                <img src="@item.MiniaturkaUrl" class="card-img-top h-100 w-100 object-fit-cover transition-zoom" 
+                                     alt="@item.Nazwa" onerror="this.src='/images/placeholder.jpg'">
+                                
+                                @* Overlay z datą na zdjęciu *@
+                                <div class="position-absolute top-0 end-0 m-3">
+                                    <span class="badge bg-white text-dark shadow-sm px-3 py-2">
+                                        <i class="bi bi-calendar-event me-1 text-primary"></i>
+                                        @item.Data.ToString("dd.MM.yyyy")
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="card-body">
+                                <h5 class="card-title fw-bold text-truncate">@item.Nazwa</h5>
+                                <p class="card-text text-muted small">
+                                    @if (!string.IsNullOrEmpty(item.Opis))
+                                    {
+                                        @(item.Opis.Length > 110 ? item.Opis.Substring(0, 110) + "..." : item.Opis)
+                                    }
+                                </p>
+                                <span class="text-primary small fw-bold">Zobacz szczegóły <i class="bi bi-arrow-right ms-1"></i></span>
+                            </div>
+                        </a>
+
+                        @* Stopka dla administratora - Edytuj / Usuń *@
+                        @if (ViewBag.CzyAdmin == true)
+                        {
+                            <div class="card-footer bg-light border-top-0 d-flex gap-2 p-3">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary w-50 shadow-sm">
+                                    <i class="bi bi-pencil me-1"></i> Edytuj
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@item.Id" 
+                                   class="btn btn-sm btn-danger w-50 shadow-sm" 
+                                   onclick="return confirm('Czy na pewno chcesz bezpowrotnie usunąć tę realizację?')">
+                                    <i class="bi bi-trash me-1"></i> Usuń
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    /* Stylowanie karty */
+    .gallery-card {
+        transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+    }
+    
+    .gallery-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06) !important;
+    }
+
+    /* Efekt przybliżania zdjęcia */
+    .transition-zoom {
+        transition: transform 0.6s ease;
+    }
+
+    .gallery-card:hover .transition-zoom {
+        transform: scale(1.1);
+    }
+
+    /* Dopasowanie obrazka */
+    .object-fit-cover {
+        object-fit: cover;
+    }
+
+    /* Link obszarowy */
+    .card-main-link {
+        display: block;
+        height: 100%;
+    }
+
+    /* Badge z datą */
+    .badge {
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+</style>
