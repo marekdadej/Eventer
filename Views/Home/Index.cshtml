@@ -1,8 +1,447 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Start";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<style>
+    body {
+        background-color: #050505; 
+        color: #e0e0e0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .hero-section {
+        position: relative;
+        height: 85vh; 
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url('/images/scena-tlo.jpg'); 
+        background-size: cover;
+        background-position: center;
+        border-bottom: 3px solid #ffc107; 
+        overflow: hidden;
+    }
+
+    .hero-title {
+        font-size: 4.5rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 6px;
+        margin-bottom: 1rem;
+        color: #ffffff;
+        text-shadow: 2px 2px 10px rgba(0,0,0,0.8);
+        animation: fadeInDown 1s ease-out;
+    }
+
+    .hero-subtitle {
+        font-size: 1.5rem;
+        font-weight: 300;
+        color: #ffc107;
+        margin-bottom: 2.5rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        animation: fadeInUp 1s ease-out;
+    }
+
+    .btn-eventer {
+        padding: 15px 50px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #000;
+        background-color: #ffc107;
+        border: none;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+        border-radius: 2px;
+    }
+
+    .btn-eventer:hover {
+        background-color: #fff;
+        color: #000;
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        cursor: pointer;
+    }
+
+    .about-section {
+        padding: 100px 20px;
+        background-color: #0a0a0a;
+        text-align: center;
+    }
+
+    .section-header {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 50px;
+        position: relative;
+        display: inline-block;
+        color: #fff;
+        text-transform: uppercase;
+    }
+
+    .section-header::after {
+        content: '';
+        display: block;
+        width: 80px;
+        height: 4px;
+        background-color: #ffc107;
+        margin: 20px auto 0;
+    }
+
+    .about-text {
+        max-width: 800px;
+        margin: 0 auto;
+        font-size: 1.15rem;
+        line-height: 1.9;
+        color: #b0b0b0;
+    }
+
+    .services-section {
+        padding: 80px 20px;
+        background-color: #000;
+    }
+
+    .service-card {
+        background-color: #111;
+        border: 1px solid #222;
+        padding: 50px 30px;
+        text-align: center;
+        transition: all 0.4s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .service-card:hover {
+        transform: translateY(-10px);
+        border-color: #ffc107;
+        box-shadow: 0 10px 30px rgba(255, 193, 7, 0.1);
+    }
+
+    .service-icon {
+        font-size: 3.5rem;
+        color: #ffc107;
+        margin-bottom: 25px;
+    }
+
+    .service-title {
+        font-size: 1.6rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #fff;
+    }
+
+    .service-desc {
+        color: #888;
+        margin-bottom: 30px;
+    }
+
+    .btn-outline-eventer {
+        border: 2px solid #ffc107;
+        color: #ffc107;
+        padding: 10px 25px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: 0.3s;
+        display: inline-block;
+        background: transparent;
+    }
+
+    .btn-outline-eventer:hover {
+        background-color: #ffc107;
+        color: #000;
+    }
+
+    .carousel-section {
+        background-color: #050505;
+        padding-bottom: 0;
+    }
+
+    .carousel-item {
+        height: 600px;
+    }
+
+    .carousel-item img {
+        height: 100%;
+        width: 100%;
+        object-fit: cover;
+        filter: brightness(0.7);
+    }
+
+    .carousel-caption {
+        background: rgba(0,0,0,0.7);
+        padding: 20px;
+        border-left: 5px solid #ffc107;
+        bottom: 50px;
+        text-align: left;
+    }
+
+    .carousel-caption h5 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #ffc107;
+    }
+
+    .stats-section {
+        background: #111;
+        padding: 80px 0;
+        color: #fff;
+        border-top: 1px solid #222;
+    }
+
+    .stat-box {
+        text-align: center;
+        padding: 20px;
+    }
+
+    .stat-number {
+        font-size: 4rem;
+        font-weight: 800;
+        color: #ffc107;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .stat-label {
+        font-size: 1.2rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: #ccc;
+    }
+
+    @@keyframes fadeInDown {
+        from { opacity: 0; transform: translateY(-50px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @@keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(50px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="hero-section">
+    <h1 class="hero-title">AGENCJA EVENTER</h1>
+    <p class="hero-subtitle">TWORZYMY SCENĘ DLA TWOICH WYDARZEŃ</p>
+    
+    <a asp-controller="Home" asp-action="Offer" class="btn-eventer">Poznaj naszą ofertę</a>
 </div>
+
+<section class="about-section">
+    <div class="container">
+        <h2 class="section-header">KIM JESTEŚMY?</h2>
+        <p class="about-text">
+            Agencja Eventer to zespół pasjonatów z solidnym zapleczem technicznym, obecny na rynku nieprzerwanie <strong>od 2009 roku</strong>. 
+            Nie tylko planujemy wydarzenia, ale dosłownie je budujemy.
+            <br><br>
+            Specjalizujemy się w technice estradowej i kompleksowej produkcji. 
+            Niezależnie od tego, czy to kameralny event firmowy, czy masowy festiwal – zawsze dajemy z siebie 100%.
+        </p>
+    </div>
+</section>
+
+<div class="carousel-section">
+    <div id="mainCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel">
+        <div class="carousel-indicators">
+            <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="0" class="active"></button>
+            <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="1"></button>
+            <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="2"></button>
+            <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="3"></button>
+            <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="4"></button>
+            <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="5"></button>
+            <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="6"></button>
+            <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="7"></button>
+            <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="8"></button>
+            <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="9"></button>
+        </div>
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <img src="/images/bielsko_biale_2026.jpeg" class="d-block w-100" alt="Evviva l’arte Bielsko-Biała">
+                <div class="carousel-caption d-none d-md-block">
+                    <h5 class="fw-bold">Evviva l’arte – Bielsko-Biała 2026</h5>
+                    <p class="fs-5">Zaawansowana konstrukcja sceniczna w systemie Layher podpierająca zadaszenie, rozbudowana o wingi oraz 14-metrową wieżę i piętrowy FOH.</p>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img src="/images/sobel_poznan_2025.jpeg" class="d-block w-100" alt="Sobel Tour 2025 Poznań">
+                <div class="carousel-caption d-none d-md-block">
+                    <h5 class="fw-bold">Trasa Koncertowa Sobel: "Napisz jak będziesz" – Poznań 2025</h5>
+                    <p class="fs-5">Pełna realizacja konstrukcji: scena z dachem, wybiegi, FOH oraz wieża techniczna.</p>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img src="/images/foh_poznan_2025.jpeg" class="d-block w-100" alt="FOH i Wieża Layher Poznań">
+                <div class="carousel-caption d-none d-md-block">
+                    <h5 class="fw-bold">Konstrukcja FOH i Wieża Layher - Poznań 2025</h5>
+                    <p class="fs-5">Profesjonalna zabudowa stanowiska realizatorskiego oraz wieża techniczna w ramach Trasy koncertowej Sobel: "Napisz jak będziesz".</p>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img src="/images/rzym_2025.jpeg" class="d-block w-100" alt="Casa Polonia Rzym 2025">
+                <div class="carousel-caption d-none d-md-block">
+                    <h5 class="fw-bold">Casa Polonia – Rzym 2025</h5>
+                    <p class="fs-5">Kompleksowa realizacja: scena z zadaszeniem, FOH, wieża oraz dedykowany podest pod kran kamerowy.</p>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img src="/images/jezus_na_stadionie_2025.jpeg" class="d-block w-100" alt="Stadion Legii Warszawa - Jezus na Stadionie">
+                <div class="carousel-caption d-none d-md-block">
+                    <h5 class="fw-bold">Jezus na Stadionie Legii - Warszawa 2025</h5>
+                    <p class="fs-5">Monumentalna scena w kształcie krzyża (250m²) z transparentnym dachem, scena orkiestrowa 6x8m oraz instalacja 19 mniejszych scen tworzących kontur mapy Polski.</p>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img src="/images/krakow_2025.jpeg" class="d-block w-100" alt="Europejskie Święto Muzyki Kraków">
+                <div class="carousel-caption d-none d-md-block">
+                    <h5 class="fw-bold">Europejskie Święto Muzyki – Kraków 2025</h5>
+                    <p class="fs-5">Montaż sceny i zadaszenia na finał polskiej prezydencji w Radzie UE. Wydarzenie realizowane równolegle w pięciu miastach Polski.</p>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img src="/images/krakow_ogrod_2024.jpeg" class="d-block w-100" alt="Scena Ogród Botaniczny Kraków">
+                <div class="carousel-caption d-none d-md-block">
+                    <h5 class="fw-bold">Ogród Botaniczny w Krakowie 2024</h5>
+                    <p class="fs-5">Realizacja sceny o wymiarach 12x10m na podbudowie Layher ze zintegrowanym systemem zadaszenia.</p>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img src="/images/csk_sciana_2024.jpeg" class="d-block w-100" alt="Konstrukcja Layher CSK Lublin">
+                <div class="carousel-caption d-none d-md-block">
+                    <h5 class="fw-bold">Konstrukcja pod Telebim CSK - Lublin 2024</h5>
+                    <p class="fs-5">Realizacja ściany w systemie Layher stanowiącej konstrukcję wsporczą dla wielkoformatowego ekranu LED.</p>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img src="/images/lublin_zuzel.jpeg" class="d-block w-100" alt="Studio Canal+ Stadion Motor Lublin">
+                <div class="carousel-caption d-none d-md-block">
+                    <h5 class="fw-bold">Studio Canal+ – Stadion Motor Lublin</h5>
+                    <p class="fs-5">Specjalistyczna konstrukcja pod studio telewizyjne na mecze żużlowe z poziomem podłogi na wysokości 5 metrów.</p>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img src="/images/wieze_pod_naglosnienie.jpeg" class="d-block w-100" alt="Wieże nagłośnieniowe Layher">
+                <div class="carousel-caption d-none d-md-block">
+                    <h5 class="fw-bold">Wieże Nagłośnieniowe Layher</h5>
+                    <p class="fs-5">Budowa dwóch wolnostojących wież pod systemy audio w systemie Layher o wysokości 8 metrów.</p>
+                </div>
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#mainCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Poprzedni</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#mainCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Następny</span>
+        </button>
+    </div>
+</div>
+
+<section class="stats-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 mb-4 mb-md-0">
+                <div class="stat-box">
+                    <span class="stat-number" data-target="15">0</span>
+                    <span class="stat-label">Lat Doświadczenia</span>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4 mb-md-0">
+                <div class="stat-box">
+                    <span class="stat-number" data-target="500">0</span>
+                    <span class="stat-label">Zrealizowanych Projektów</span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-box">
+                    <span class="stat-number" data-target="100">0</span>
+                    <span class="stat-label">% Zadowolonych Klientów</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="oferta" class="services-section">
+    <div class="container">
+        <h2 class="section-header">CO ROBIMY?</h2>
+        <div class="row">
+            
+            <div class="col-md-4 mb-4">
+                <div class="service-card">
+                    <div class="service-icon"><i class="bi bi-calendar-event"></i></div> 
+                    <h3 class="service-title">Organizacja Eventów</h3>
+                    <p class="service-desc">
+                        Od planowania po finalne brawa. Zajmiemy się scenariuszem i logistyką.
+                    </p>
+                    <a asp-controller="Home" asp-action="Offer" class="btn-outline-eventer">Zobacz szczegóły</a>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <div class="service-card">
+                    <div class="service-icon"><i class="bi bi-speaker"></i></div> 
+                    <h3 class="service-title">Sceny i Technika</h3>
+                    <p class="service-desc">
+                        Nagłośnienie, oświetlenie i konstrukcje sceniczne to nasza codzienność.
+                    </p>
+                    <a asp-controller="Gallery" asp-action="Index" class="btn-outline-eventer">Zobacz galerię</a>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <div class="service-card">
+                    <div class="service-icon"><i class="bi bi-chat-dots"></i></div>
+                    <h3 class="service-title">Współpraca</h3>
+                    <p class="service-desc">
+                        Masz pomysł? Skontaktuj się z nami, a pomożemy go zrealizować.
+                    </p>
+                    <a asp-controller="Home" asp-action="Contact" class="btn-outline-eventer">Napisz do nas</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<script>
+    const counters = document.querySelectorAll('.stat-number');
+    let hasAnimated = false;
+
+    const animateCounters = () => {
+        counters.forEach(counter => {
+            const target = +counter.getAttribute('data-target');
+            const speed = 200;
+            
+            const updateCount = () => {
+                const count = +counter.innerText;
+                const inc = target / speed;
+
+                if(count < target) {
+                    counter.innerText = Math.ceil(count + inc);
+                    setTimeout(updateCount, 20);
+                } else {
+                    counter.innerText = target + (target === 100 ? '%' : '+');
+                }
+            }
+            updateCount();
+        });
+    };
+
+    window.addEventListener('scroll', () => {
+        const section = document.querySelector('.stats-section');
+        const sectionPos = section.getBoundingClientRect().top;
+        const screenPos = window.innerHeight / 1.3;
+
+        if(sectionPos < screenPos && !hasAnimated) {
+            animateCounters();
+            hasAnimated = true;
+        }
+    });
+</script>

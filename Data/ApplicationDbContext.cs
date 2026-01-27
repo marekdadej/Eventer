@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Eventer.Models;
 
 namespace Eventer.Data;
 
@@ -9,4 +10,6 @@ public class ApplicationDbContext : IdentityDbContext
         : base(options)
     {
     }
+
+    public DbSet<Event> Events { get; set; }
 }

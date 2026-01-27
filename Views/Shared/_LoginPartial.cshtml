@@ -5,22 +5,36 @@
 <ul class="navbar-nav">
 @if (SignInManager.IsSignedIn(User))
 {
-    <li class="nav-item">
-        <a  class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Witaj @User.Identity?.Name!</a>
-    </li>
-    <li class="nav-item">
-        <form  class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
-            <button  type="submit" class="nav-link btn btn-link text-dark">Wyloguj</button>
-        </form>
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Witaj, @User.Identity?.Name
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end custom-dropdown" aria-labelledby="userDropdown">
+            <li>
+                <a class="dropdown-item" asp-area="" asp-controller="Events" asp-action="MySavedEvents">Moje wydarzenia</a>
+            </li>
+            
+            <li>
+                <a class="dropdown-item" asp-area="Identity" asp-page="/Account/Manage/Index">Ustawienia</a>
+            </li>
+            
+            <li><hr class="dropdown-divider bg-secondary"></li>
+            
+            <li>
+                <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                    <button type="submit" class="dropdown-item">Wyloguj</button>
+                </form>
+            </li>
+        </ul>
     </li>
 }
 else
 {
     <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Register">Rejestracja</a>
+        <a class="nav-link" asp-area="Identity" asp-page="/Account/Register">Rejestracja</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login">Logowanie</a>
+        <a class="nav-link" asp-area="Identity" asp-page="/Account/Login">Logowanie</a>
     </li>
 }
 </ul>

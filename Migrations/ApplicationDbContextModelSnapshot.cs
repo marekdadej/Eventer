@@ -17,6 +17,83 @@ namespace Eventer.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.0");
 
+            modelBuilder.Entity("Eventer.Models.Event", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("Clearance")
+                        .HasColumnType("REAL");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<double>("FohDist")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("FohLevel")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("FohScrim")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("FohSize")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FohTower")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("HasScrim")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MainType")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RoofSystem")
+                        .HasColumnType("TEXT");
+
+                    b.Property<double>("StageDepth")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("StageHeight")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("StageWidth")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("TowerDepth")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("TowerHeight")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("TowerWidthBays")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("WingDepthBays")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("WingType")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("WingWidthBays")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Events");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")

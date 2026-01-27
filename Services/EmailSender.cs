@@ -2,9 +2,11 @@
 
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Http;
 using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace Eventer.Services
 {
@@ -18,6 +20,11 @@ namespace Eventer.Services
         }
 
         public async Task SendEmailAsync(string email, string subject, string htmlMessage)
+        {
+            await SendEmailWithAttachmentsAsync(email, subject, htmlMessage, null);
+        }
+
+        public async Task SendEmailWithAttachmentsAsync(string email, string subject, string htmlMessage, List<IFormFile> attachments)
         {
             var mailSettings = _configuration.GetSection("MailSettings");
             
@@ -38,6 +45,19 @@ namespace Eventer.Services
             {
                 IsBodyHtml = true
             };
+
+            if (attachments != null && attachments.Count > 0)
+            {
+                foreach (var file in attachments)
+                {
+                    if (file.Length > 0)
+                    {
+                        var stream = file.OpenReadStream();
+                        var mailAttachment = new Attachment(stream, file.FileName);
+                        mailMessage.Attachments.Add(mailAttachment);
+                    }
+                }
+            }
 
             await client.SendMailAsync(mailMessage);
         }
