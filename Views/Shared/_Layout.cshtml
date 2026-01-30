@@ -34,8 +34,6 @@
     
     <style>
         body {
-            /* Tylko odstęp od góry, aby menu nie zasłaniało treści. */
-            /* Stopka jest standardowa, więc nie potrzebuje padding-bottom. */
             padding-top: 80px; 
         }
     </style>
@@ -86,7 +84,7 @@
                             <a class="nav-link @IsActive("Home", "Contact")" asp-area="" asp-controller="Home" asp-action="Contact">Kontakt</a>
                         </li>
                         
-                        @if (User.Identity.IsAuthenticated)
+                        @if (User.Identity?.IsAuthenticated ?? false)
                         {
                             <li class="nav-item">
                                 <a class="nav-link fw-bold @IsActive("Events", "Create")" asp-area="" asp-controller="Events" asp-action="Create">Utwórz wydarzenie</a>

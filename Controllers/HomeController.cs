@@ -43,14 +43,11 @@ public class HomeController : Controller
     }
 
     [HttpPost]
-    // ZMIANA: List<IFormFile> attachments
     public async Task<IActionResult> SendMessage(string firstName, string lastName, string email, string message, List<IFormFile> attachments)
     {
-        // Walidacja serwerowa (zapasowa)
         if (attachments != null && attachments.Count > 0)
         {
             long totalSize = attachments.Sum(f => f.Length);
-            // Limit 20 MB na całość
             if (totalSize > 20 * 1024 * 1024) 
             {
                 TempData["SuccessMessage"] = "Łączny rozmiar plików jest za duży (max 20MB).";
@@ -92,7 +89,6 @@ public class HomeController : Controller
         {
             if (_emailSender is EmailSender customSender)
             {
-                // Wywołujemy nową metodę przyjmującą listę
                 await customSender.SendEmailWithAttachmentsAsync(adminEmail, subject, htmlBody, attachments);
             }
             else

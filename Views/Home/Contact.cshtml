@@ -7,11 +7,12 @@
 
 @if (TempData["SuccessMessage"] != null)
 {
-    var alertClass = TempData["SuccessMessage"].ToString().Contains("Błąd") || TempData["SuccessMessage"].ToString().Contains("problem") || TempData["SuccessMessage"].ToString().Contains("za duży") 
+    var message = TempData["SuccessMessage"]?.ToString() ?? "";
+    var alertClass = message.Contains("Błąd") || message.Contains("problem") || message.Contains("za duży") 
                      ? "alert-danger" : "alert-success";
 
     <div class="alert @alertClass alert-dismissible fade show" role="alert">
-        @TempData["SuccessMessage"]
+        @message
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }

@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { LayherPartsBase } from './layher/LayherCore.js';
 
-// Import komponentów
 import { 
     VerticalStandardsLW, 
     BaseJacks, 
@@ -47,7 +46,6 @@ export class StageFloorSystem {
         const totalH = parseFloat(config.height) || 1.5;
         const floorType = config.floorType || 'layher';
         
-        // --- 1. GENEROWANIE SIATKI (BAYS) ---
         const getBays = (total) => {
             const bays = [];
             let remaining = total;
@@ -123,8 +121,7 @@ export class StageFloorSystem {
 
     buildStructure(baysX, baysZ, startX, startZ, totalH) {
         const stackConfig = this._calculateVerticalStack(totalH);
-        
-        // --- 1. SŁUPY (Grid) ---
+
         const colCoords = []; 
         let curX = startX;
         for (let i = 0; i <= baysX.length; i++) {
@@ -138,7 +135,6 @@ export class StageFloorSystem {
             if (i < baysX.length) curX += baysX[i];
         }
 
-        // Poziomy rozet
         const nodeLevels = [stackConfig.baseStartY + 0.17];
         let currentY = stackConfig.firstStdY;
         stackConfig.standards.forEach((len, idx) => {
@@ -149,7 +145,6 @@ export class StageFloorSystem {
         
         const topRosetteLevel = currentY - 0.025;
 
-        // --- 2. KONSTRUKCJA PIĘTER (RYGLE I STĘŻENIA) ---
         const allLevels = [...nodeLevels, topRosetteLevel]; 
 
         for (let k = 0; k < allLevels.length - 1; k++) {
@@ -165,11 +160,9 @@ export class StageFloorSystem {
             }
         }
 
-        // --- 3. GÓRA (PODŁOGA) ---
         this._buildGridsAndBracing(baysX, baysZ, colCoords, topRosetteLevel, false);
         this._buildFloor(baysX, baysZ, colCoords, topRosetteLevel);
 
-        // --- 4. BARIERKI ---
         this._buildGuardrails(baysX, baysZ, colCoords, topRosetteLevel, totalH);
     }
 
@@ -207,14 +200,12 @@ export class StageFloorSystem {
             for (let j = 0; j <= baysZ.length; j++) {
                 const p = colCoords[i][j];
 
-                // Rygle X
                 if (i < baysX.length) {
                     const l = new HorizontalLedgersLW(baysX[i]);
                     l.group.position.set(p.x, y, p.z);
                     this.group.add(l.group);
                 }
-                
-                // Rygle Z (Rotacja -PI/2)
+
                 if (j < baysZ.length) {
                     const l = new HorizontalLedgersLW(baysZ[j]);
                     l.group.rotation.y = -Math.PI/2; 
@@ -222,7 +213,6 @@ export class StageFloorSystem {
                     this.group.add(l.group);
                 }
 
-                // STĘŻENIA POZIOME "T"
                 if (isBaseLevel && i < baysX.length && j < baysZ.length) {
                     const isFrontRow = (j === baysZ.length - 1);
                     const isMiddleCol = (i === Math.floor(baysX.length / 2));
@@ -332,10 +322,7 @@ export class StageFloorSystem {
                 const W = baysX[i];
                 const D = baysZ[j];
 
-                // POPRAWKA: Trawersy (U-Ledgers) w osi Z przesunięte z powrotem o +D (p.z + D)
-                // Dzięki temu pokrywają odcinek od p.z do p.z+D (bo obrót robi -Z)
-
-                // 1. Standard 2.07 x 2.07
+        
                 if (W >= 2.0 && D >= 2.0) {
                     this._addULedger(p.x, uLevel, p.z + D, D, true);      
                     this._addULedger(p.x + W, uLevel, p.z + D, D, true);  
@@ -347,7 +334,6 @@ export class StageFloorSystem {
                         this._placeDeck(p.x, deckY, p.z + 1.56, 2.07, 1.04);
                     }
                 } 
-                // 2. Szeroki 2.07, płytki 1.04
                 else if (W >= 2.0 && D < 2.0) {
                     this._addULedger(p.x, uLevel, p.z + D, D, true);
                     this._addULedger(p.x + W, uLevel, p.z + D, D, true);
@@ -358,7 +344,6 @@ export class StageFloorSystem {
                         this._placeDeck(p.x, deckY, p.z + D/2, 2.07, 1.04);
                     }
                 } 
-                // 3. Wąski 1.04, głęboki 2.07
                 else if (W < 2.0 && D >= 2.0) {
                     this._addULedger(p.x, uLevel, p.z, W, false);
                     this._addULedger(p.x, uLevel, p.z + D, W, false);
@@ -366,11 +351,9 @@ export class StageFloorSystem {
                     if (this.isPeri) {
                          this._placePeriDeck(p.x, deckY, p.z, W, D);
                     } else {
-                        // POPRAWKA: Podest przesunięty do przodu (p.z + D)
                         this._placeDeckVertical(p.x + W/2, deckY, p.z + D, 2.07, 1.04);
                     }
                 } 
-                // 4. Mały 1.04 x 1.04
                 else {
                     this._addULedger(p.x, uLevel, p.z + D, D, true);
                     this._addULedger(p.x + W, uLevel, p.z + D, D, true);

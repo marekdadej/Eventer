@@ -1,14 +1,6 @@
 import * as THREE from 'three';
 import { LayherPartsBase } from './LayherCore.js';
 
-/**
- * Decks - Podesty Layher oraz Elementy Systemu Peri.
- * Zaktualizowano:
- * - Ramka aluminiowa ciągła (2mm grubości), zlicowana ze sklejką.
- * - Obsługa plastikowych zaślepek (narożników) sterowana przez setCorners.
- * - ZWIĘKSZONO LICZBĘ NITÓW (gęstszy rozstaw 0.12m).
- * - NOWA NAKLEJKA: Czarne tło + żółty napis "Agencja Eventer".
- */
 export class Decks extends LayherPartsBase {
     constructor(length, width, variant = 'i6') { 
         super();
@@ -16,12 +8,9 @@ export class Decks extends LayherPartsBase {
         this.width = width;
         this.variant = variant;
         
-        // Flagi narożników [Lewy-Tył, Prawy-Tył, Prawy-Przód, Lewy-Przód]
-        // true = wstaw plastik (środek sceny / przód), false = brak plastiku (tył/boki pod barierki)
         this.cornersState = [true, true, true, true]; 
         this.cornerMeshes = [];
 
-        // Inicjalizacja materiałów
         if (!this.matPeriPlywood) this._initPeriMaterials();
         this._initLogoMaterial();
 
@@ -38,10 +27,6 @@ export class Decks extends LayherPartsBase {
         };
     }
 
-    /**
-     * Ustawia widoczność plastikowych zaślepek w narożnikach.
-     * Używane przez StageFloorSystem do usuwania plastików na krawędziach pod barierki.
-     */
     setCorners(nw, ne, se, sw) {
         this.cornersState = [nw, ne, se, sw];
         if (this.cornerMeshes.length === 4) {
@@ -84,7 +69,6 @@ export class Decks extends LayherPartsBase {
         this.matPeriBeam = new THREE.MeshStandardMaterial({ color: 0xffcc00, roughness: 0.6, metalness: 0.1 });
         this.matPlasticCorner = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.5, metalness: 0.1 });
         
-        // Materiał na nity
         this.matRivet = new THREE.MeshStandardMaterial({ color: 0xAAAAAA, roughness: 0.3, metalness: 0.8 });
     }
 
@@ -94,18 +78,15 @@ export class Decks extends LayherPartsBase {
         canvas.height = 128;
         const ctx = canvas.getContext('2d');
 
-        // ZMIANA: Czarne tło
         ctx.fillStyle = '#000000'; 
         ctx.fillRect(0, 0, 512, 128);
 
-        // ZMIANA: Żółty napis "Agencja Eventer"
-        ctx.fillStyle = '#FFD700'; // Złoty/Żółty
+        ctx.fillStyle = '#FFD700'; 
         ctx.font = 'bold 60px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('Agencja Eventer', 256, 64);
 
-        // ZMIANA: Żółta ramka
         ctx.strokeStyle = '#FFD700';
         ctx.lineWidth = 5;
         ctx.strokeRect(10, 10, 492, 108);
@@ -142,7 +123,6 @@ export class Decks extends LayherPartsBase {
         const len = this.length; 
         const w = this.width;    
 
-        // 1. PERI BAY
         if (this.variant === 'periBay') {
             const beamHeight = 0.24;
             let numBeams = Math.ceil(w / 0.5) + 1; 
@@ -164,7 +144,6 @@ export class Decks extends LayherPartsBase {
             return group;
         }
 
-        // 2. ELEMENTY POJEDYNCZE PERI
         if (this.variant === 'periBeam') {
             const beam = this._createPeriBeam(len);
             beam.position.set(len/2, 0.12, 0);
@@ -178,7 +157,6 @@ export class Decks extends LayherPartsBase {
             return group;
         }
 
-        // 3. LAYHER EVENT T16
         if (this.variant === 'eventT16') {
             const frameHeight = 0.086;  
             const plyThick = 0.012;     
@@ -186,7 +164,6 @@ export class Decks extends LayherPartsBase {
             const borderW = 0.002;      
             const cutSize = 0.055;      
 
-            // Helper kształtu
             const createChamferedRect = (L, W, cut) => {
                 const s = new THREE.Shape();
                 const hl = L / 2;
@@ -203,7 +180,6 @@ export class Decks extends LayherPartsBase {
                 return s;
             };
 
-            // A. RAMKA ALUMINIOWA
             const outerShape = createChamferedRect(len, w, cutSize);
             const innerShape = createChamferedRect(len - 2*borderW, w - 2*borderW, cutSize);
             outerShape.holes.push(innerShape);
@@ -214,20 +190,17 @@ export class Decks extends LayherPartsBase {
             const frame = new THREE.Mesh(frameGeo, this.matAlu);
             group.add(frame);
 
-            // B. SKLEJKA
             const plyGeo = new THREE.ExtrudeGeometry(innerShape, { depth: plyThick, bevelEnabled: false });
             plyGeo.rotateX(Math.PI / 2);
             plyGeo.translate(len/2, topY, 0);
             const plywood = new THREE.Mesh(plyGeo, this.matPlywoodEvent);
             group.add(plywood);
 
-            // C. NITY (Rivets) - Gęste (co 12cm)
             const rivetSpacing = 0.12; 
             const rivetMargin = borderW + 0.015; 
             const rivetGeo = new THREE.CylinderGeometry(0.004, 0.004, 0.002, 8);
             const rivetY = topY + 0.0005;
 
-            // Długie boki
             const countX = Math.floor((len - 2*cutSize) / rivetSpacing);
             const stepX = (len - 2*cutSize) / countX;
             const startX = cutSize; 
@@ -242,7 +215,6 @@ export class Decks extends LayherPartsBase {
                 }
             }
 
-            // Krótkie boki
             const countZ = Math.floor((w - 2*cutSize) / rivetSpacing);
             const stepZ = (w - 2*cutSize) / countZ;
             
@@ -255,7 +227,6 @@ export class Decks extends LayherPartsBase {
                 }
             }
 
-            // D. NAKLEJKA "AGENCJA EVENTER" (ZMODYFIKOWANA)
             const stickerW = 0.30;
             const stickerH = 0.06;
             const stickerGeo = new THREE.PlaneGeometry(stickerW, stickerH);
@@ -269,7 +240,6 @@ export class Decks extends LayherPartsBase {
             sticker2.position.z = -w/2 - 0.0015;
             group.add(sticker2);
 
-            // E. NAROŻNIKI PLASTIKOWE (INSERTS)
             const cornerShape = new THREE.Shape();
             cornerShape.moveTo(0, 0);
             cornerShape.lineTo(cutSize, 0);
@@ -292,7 +262,6 @@ export class Decks extends LayherPartsBase {
             addCorner(len, w/2, Math.PI);
             addCorner(0, w/2, -Math.PI / 2);
 
-            // F. HAKI (Ukryte)
             const endCapW = 0.05; 
             const subY = topY - frameHeight;
             const hookShape = new THREE.Shape();
@@ -315,7 +284,6 @@ export class Decks extends LayherPartsBase {
             group.add(hookR);
 
         } else {
-            // I6 Stalowy
             const plateH = 0.054;
             const plateGeo = new THREE.BoxGeometry(len, plateH, w);
             const plate = new THREE.Mesh(plateGeo, this.matGalvNew);

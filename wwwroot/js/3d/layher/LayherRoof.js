@@ -23,7 +23,6 @@ export class LayherRoof {
             side: THREE.DoubleSide
         });
 
-        // Materiał siatki (scrim)
         this.matScrim = new THREE.MeshBasicMaterial({
             color: 0x000000,
             transparent: true,
@@ -54,7 +53,6 @@ export class LayherRoof {
 
         let depth = parseFloat(config.depth) || 4.14;
         
-        // --- 1. WYSOKOŚCI DACHU ---
         const frontH = 3.0; 
         const backH = 2.5; 
 
@@ -64,31 +62,23 @@ export class LayherRoof {
         const halfW = width / 2;
         const halfD = depth / 2;
 
-        // --- 2. STOJAKI DACHOWE (SKRAJNE) ---
-        // Przód
         this._placeRoofColumn(halfW, frontH, halfD, false);  
         this._placeRoofColumn(-halfW, frontH, halfD, false); 
-        // Tył (isBack = true -> wymuszenie 2.5m)
         this._placeRoofColumn(halfW, backH, -halfD, true);  
         this._placeRoofColumn(-halfW, backH, -halfD, true); 
 
-        // --- 3. DŹWIGARY O-ALU ---
         this._buildLatticeGirderO(width, frontGirderBottomY, halfD); 
         this._buildLatticeGirderO(width, backGirderBottomY, -halfD);
 
-        // --- 4. KROKWIE ---
         const rPipe = 0.024;
         const startY = frontH + rPipe; 
         const endY = backH + rPipe;
         this._buildRafters(width, depth, startY, endY);
 
-        // --- 5. PLANDEKA ---
         this._buildCanopy(width, depth, startY, endY);
 
-        // --- 6. SIATKI (SCRIMS) ---
         if (config.layherScrim || config.hasScrim) {
-            // Obliczamy dokładną wysokość, do której ma sięgać siatka
-            // startY/endY to góra rury krokwi. Dodajemy minimalny margines na plandekę.
+   
             const scrimFrontH = startY + 0.02; 
             const scrimBackH = endY + 0.02;
             
@@ -212,7 +202,6 @@ export class LayherRoof {
         const midY = (startY + endY) / 2;
         const canopyY = midY + 0.03; 
 
-        // GÓRA
         const widthTotal = w + 2*offsetOut;
         const planeGeo = new THREE.PlaneGeometry(widthTotal, roofLen + 0.4); 
         const roofPlane = new THREE.Mesh(planeGeo, this.matCanvas);
@@ -220,7 +209,6 @@ export class LayherRoof {
         roofPlane.position.set(0, canopyY, 0); 
         group.add(roofPlane);
 
-        // BOKI
         const valanceH = 0.60; 
         
         const yAtFront = canopyY + (d/2 * Math.tan(angle));
@@ -249,7 +237,6 @@ export class LayherRoof {
         rightVal.position.set(xRight, canopyY, 0);
         group.add(rightVal);
 
-        // FALBANY
         const frontValGeo = new THREE.PlaneGeometry(widthTotal, valanceH);
         const frontVal = new THREE.Mesh(frontValGeo, this.matCanvas);
         frontVal.position.set(0, yAtFront - valanceH/2, zFront); 
@@ -265,57 +252,37 @@ export class LayherRoof {
 
     _buildScrims(w, d, hFront, hBack) {
         const mat = this.matScrim;
-        // Offset, aby siatka była minimalnie na zewnątrz konstrukcji
         const offset = 0.05; 
-        
-        // 1. TYLNA SIATKA (Prostokąt)
-        // Szerokość to w + 2*offset, żeby domknąć rogi z siatkami bocznymi
+
         const backW = w + (2 * offset);
         const backGeo = new THREE.PlaneGeometry(backW, hBack);
         const backScrim = new THREE.Mesh(backGeo, mat);
-        
-        // Pozycja: środek wysokości (hBack/2)
-        // Z: tył sceny (-d/2) przesunięty o offset na zewnątrz
+
         backScrim.position.set(0, hBack / 2, -d/2 - offset); 
-        backScrim.rotation.y = Math.PI; // Tyłem do przodu
+        backScrim.rotation.y = Math.PI; 
         this.group.add(backScrim);
 
-        // 2. BOCZNE SIATKI (Trapezy)
-        // Tworzymy kształt trapezu odpowiadający spadkowi dachu
         const sideShape = new THREE.Shape();
         
-        // Współrzędne lokalne kształtu 2D (przed obrotem):
-        // X = Oś Z świata (po obrocie)
-        // Y = Oś Y świata
-        
-        // Punkt początkowy (Przód-Dół)
-        // d/2 to przód, +offset żeby domknąć
         sideShape.moveTo(d/2 + offset, 0);
         
-        // Punkt (Przód-Góra)
         sideShape.lineTo(d/2 + offset, hFront);
         
-        // Punkt (Tył-Góra)
         sideShape.lineTo(-d/2 - offset, hBack);
         
-        // Punkt (Tył-Dół)
         sideShape.lineTo(-d/2 - offset, 0);
         
         sideShape.closePath();
         
         const sideGeo = new THREE.ShapeGeometry(sideShape);
         
-        // Lewa Siatka
         const leftScrim = new THREE.Mesh(sideGeo, mat);
-        leftScrim.rotation.y = -Math.PI / 2; // Obrót o -90 stopni
-        // Pozycja X: lewa krawędź (-w/2) przesunięta o offset na zewnątrz
+        leftScrim.rotation.y = -Math.PI / 2; 
         leftScrim.position.set(-w/2 - offset, 0, 0);
         this.group.add(leftScrim);
 
-        // Prawa Siatka
         const rightScrim = new THREE.Mesh(sideGeo, mat);
-        rightScrim.rotation.y = -Math.PI / 2; // Ten sam obrót, ale materiał DoubleSide załatwia sprawę
-        // Pozycja X: prawa krawędź (+w/2) przesunięta o offset na zewnątrz
+        rightScrim.rotation.y = -Math.PI / 2; 
         rightScrim.position.set(w/2 + offset, 0, 0);
         this.group.add(rightScrim);
     }

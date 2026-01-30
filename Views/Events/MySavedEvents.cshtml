@@ -6,22 +6,17 @@
 }
 
 <style>
-    /* Nadpisujemy style Layoutu dla ciemnego motywu tej podstrony */
     body {
         background-color: #121212 !important;
         color: #e0e0e0 !important;
     }
 
-    /* Rozszerzamy kontener, aby pomieścił siatkę kart (Layout domyślnie jest węższy) */
     .container {
         max-width: 1600px !important; 
         width: 100%;
         margin: 0 auto;
         padding-top: 20px;
     }
-
-    /* Ukrywamy domyślną stopkę, jeśli przeszkadza w tym widoku (opcjonalne) */
-    /* footer.footer { display: none; } */
 
     :root {
         --bg-panel: #1e1e1e;
@@ -45,7 +40,6 @@
         font-size: 1.5rem;
     }
 
-    /* GRID */
     .events-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -139,7 +133,6 @@
         padding-top: 10px;
     }
 
-    /* ACTIONS */
     .actions-wrap {
         position: absolute;
         top: 10px;
@@ -170,7 +163,6 @@
     .btn-delete { color: #ff4444; border-color: rgba(255, 68, 68, 0.3); }
     .btn-delete:hover { background: #ff4444; color: #fff; }
 
-    /* MODAL 3D */
     .modal-overlay {
         display: none;
         position: fixed;
@@ -224,7 +216,6 @@
         border-radius: 4px;
     }
     
-    /* Dodatkowy przycisk tworzenia jeśli brak projektów */
     .btn-create-new {
         display: inline-flex;
         align-items: center;
@@ -320,7 +311,6 @@
 <script type="module">
     import { initApp, updateSceneData, setEnvironment } from '/js/3d/main.js?v=@DateTime.Now.Ticks';
 
-    // Funkcja otwierająca modal
     window.openModal = function(element) {
         const rawData = element.getAttribute('data-event');
         if (!rawData) return;
@@ -337,7 +327,6 @@
         modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
 
-        // Helper: pobieranie wartości niezależnie od wielkości liter
         const getVal = (key) => {
             if (dbData[key] !== undefined) return dbData[key];
             const lowerKey = key.charAt(0).toLowerCase() + key.slice(1);
@@ -348,10 +337,8 @@
         };
 
         try {
-            // Inicjalizacja silnika w kontenerze modala
             initApp('viewer3D');
 
-            // Mapowanie danych (bezpieczne dla null/undefined)
             const config = {
                 MainType: getVal('MainType'),
                 envMode: getVal('EnvMode') || 'mono',
@@ -399,7 +386,6 @@
         }
     }
 
-    // Zamykanie modala
     window.closeModal = function() {
         const modal = document.getElementById('vizModal');
         modal.style.display = 'none';

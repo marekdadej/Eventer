@@ -11,7 +11,6 @@ public class RealizacjeController : Controller
     private readonly ApplicationDbContext _context;
     private readonly IWebHostEnvironment _hostEnvironment;
 
-    // Lista zaufanych administratorów
     private readonly List<string> _adminEmails = new List<string> 
     { 
         "nd.dadej@gmail.com", 
@@ -25,10 +24,8 @@ public class RealizacjeController : Controller
         _hostEnvironment = hostEnvironment;
     }
 
-    // Metoda sprawdzająca uprawnienia
-    private bool CzyToAdmin() => User.Identity != null && User.Identity.IsAuthenticated && _adminEmails.Contains(User.Identity.Name);
+    private bool CzyToAdmin() => User.Identity != null && User.Identity.IsAuthenticated && User.Identity.Name != null && _adminEmails.Contains(User.Identity.Name);
 
-    // 1. LISTA
     public async Task<IActionResult> Index()
     {
         var realizacje = await _context.Realizacje
@@ -39,7 +36,6 @@ public class RealizacjeController : Controller
         return View(realizacje);
     }
 
-    // 2. SZCZEGÓŁY
     public async Task<IActionResult> Details(int? id)
     {
         if (id == null) return NotFound();
@@ -54,7 +50,6 @@ public class RealizacjeController : Controller
         return View(realizacja);
     }
 
-    // 3. DODAWANIE (GET)
     [Authorize]
     public IActionResult Create()
     {
@@ -62,7 +57,6 @@ public class RealizacjeController : Controller
         return View();
     }
 
-    // 4. DODAWANIE (POST)
     [HttpPost]
     [Authorize]
     [ValidateAntiForgeryToken]
@@ -91,7 +85,6 @@ public class RealizacjeController : Controller
         return View(realizacja);
     }
 
-    // 5. EDYCJA (GET)
     [Authorize]
     public async Task<IActionResult> Edit(int? id)
     {
@@ -106,7 +99,6 @@ public class RealizacjeController : Controller
         return View(realizacja);
     }
 
-    // 6. EDYCJA (POST)
     [HttpPost]
     [Authorize]
     [ValidateAntiForgeryToken]
@@ -150,7 +142,6 @@ public class RealizacjeController : Controller
         return View(realizacja);
     }
 
-    // 7. USUWANIE POJEDYNCZEGO ZDJĘCIA PRZEZ AJAX (WYWOŁYWANE Z EDYCJI)
     [HttpPost]
     [Authorize]
     public async Task<IActionResult> UsunZdjecie(int id)
@@ -160,7 +151,6 @@ public class RealizacjeController : Controller
         var zdjecie = await _context.ZdjeciaRealizacji.FindAsync(id);
         if (zdjecie == null) return NotFound();
 
-        // Usuwanie fizyczne pliku z dysku
         UsunPlikZDysku(zdjecie.Url);
 
         _context.ZdjeciaRealizacji.Remove(zdjecie);
@@ -169,7 +159,6 @@ public class RealizacjeController : Controller
         return Ok();
     }
 
-    // 8. USUWANIE CAŁEJ REALIZACJI
     [Authorize]
     public async Task<IActionResult> Delete(int? id)
     {
@@ -181,24 +170,19 @@ public class RealizacjeController : Controller
 
         if (realizacja == null) return NotFound();
 
-        // 1. Usuń miniaturkę z dysku
         UsunPlikZDysku(realizacja.MiniaturkaUrl);
 
-        // 2. Usuń wszystkie zdjęcia z galerii z dysku
         foreach (var foto in realizacja.Galeria)
         {
             UsunPlikZDysku(foto.Url);
         }
 
-        // 3. Usuń rekordy z bazy (galeria zostanie usunięta kaskadowo lub ręcznie)
         _context.ZdjeciaRealizacji.RemoveRange(realizacja.Galeria);
         _context.Realizacje.Remove(realizacja);
         
         await _context.SaveChangesAsync();
         return RedirectToAction(nameof(Index));
     }
-
-    // --- POMOCNIKI ---
 
     private async Task<string> ZapiszPlik(IFormFile plik)
     {

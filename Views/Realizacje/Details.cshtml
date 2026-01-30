@@ -7,7 +7,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css">
 
 <div class="container mt-5">
-    @* Chlebki z ikoną domu *@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a asp-action="Index" class="text-decoration-none"><i class="bi bi-house-door me-1"></i>Realizacje</a></li>
@@ -77,7 +76,6 @@
 </div>
 
 <style>
-    /* --- STYLIZACJA PODGLĄDU NA STRONIE --- */
     .gallery-item { position: relative; overflow: hidden; border-radius: 8px; background: #000; }
     .gallery-img { width: 100%; height: 240px; object-fit: cover; transition: transform 0.5s ease; display: block; }
     .gallery-overlay { 
@@ -89,17 +87,14 @@
     .gallery-item:hover .gallery-img { transform: scale(1.1); }
     .main-img-highlight { border: 2px solid #007bff; }
 
-    /* --- MODYFIKACJA LIGHTBOX (CZARNE TŁO I POPRAWIONY UKŁAD) --- */
     
     .lightboxOverlay { background-color: #000 !important; opacity: 0.95 !important; }
 
-    /* Obniżenie ramki ze zdjęciem, by nie nachodziła na przycisk X */
     .lightbox {
         top: 100px !important; 
         outline: none !important;
     }
 
-    /* Przycisk X w prawym górnym rogu */
     .lb-dataContainer {
         position: fixed !important;
         top: 25px !important;
@@ -119,7 +114,6 @@
     }
     .lb-close:hover { transform: scale(1.2); opacity: 1; }
 
-    /* Strzałki nawigacji na środku bocznych krawędzi */
     .lb-nav {
         position: fixed !important;
         top: 50% !important;
@@ -139,7 +133,6 @@
     .lb-prev { position: fixed !important; left: 20px !important; }
     .lb-next { position: fixed !important; right: 20px !important; }
 
-    /* Ukrycie domyślnych detali (tekstów) pod zdjęciem */
     .lb-details { display: none !important; }
     .lb-outerContainer { background-color: #000 !important; border-radius: 4px; }
 
@@ -156,12 +149,11 @@
           'wrapAround': true,
           'disableScrolling': true,    
           'fitImagesInViewport': true, 
-          'positionFromTop': 100,      // Wymusza start zdjęcia 100px od góry ekranu
+          'positionFromTop': 100,     
           'imageFadeDuration': 300,
           'fadeDuration': 300
         });
 
-        // Wymuszenie zamknięcia przez ESC
         document.addEventListener('keydown', function(e) {
             if (e.key === "Escape") {
                 lightbox.end();

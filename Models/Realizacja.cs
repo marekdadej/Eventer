@@ -21,10 +21,8 @@ public class Realizacja
     [Display(Name = "Opis wykonanych prac")]
     public string Opis { get; set; } = string.Empty;
 
-    // URL do zdjęcia głównego zapisanego na serwerze
     public string? MiniaturkaUrl { get; set; }
 
-    // --- POLA DO PRZESYŁANIA PLIKÓW (nie trafiają bezpośrednio do bazy) ---
     
     [NotMapped]
     [Display(Name = "Zdjęcie główne (plik)")]
@@ -34,7 +32,6 @@ public class Realizacja
     [Display(Name = "Dodaj zdjęcia do galerii")]
     public List<IFormFile>? GaleriaFiles { get; set; }
 
-    // Relacja do tabeli ze zdjęciami dodatkowymi
     public virtual ICollection<ZdjecieRealizacji> Galeria { get; set; } = new List<ZdjecieRealizacji>();
 }
 

@@ -29,15 +29,11 @@ builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// --- KONFIGURACJA KULTURY (NAPRAWA ZAPISU LICZB) ---
-// Ustawiamy domyślną kulturę na en-US (kropka w liczbach),
-// ale nadpisujemy format daty na polski.
 var cultureInfo = new CultureInfo("en-US");
 cultureInfo.DateTimeFormat = new CultureInfo("pl-PL").DateTimeFormat;
 
 CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
 CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
-// ---------------------------------------------------
 
 if (app.Environment.IsDevelopment())
 {

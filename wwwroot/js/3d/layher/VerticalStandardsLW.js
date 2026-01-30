@@ -1,14 +1,6 @@
 import * as THREE from 'three';
-// Import z LayherCore (zakładamy że LayherCore.js istnieje w tym samym folderze)
 import { LayherPartsBase } from './LayherCore.js';
 
-/**
- * VerticalStandardsLW - Stojaki pionowe LW (Allround).
- * POPRAWKI:
- * 1. Zawsze widoczna górna rozeta (dla rygli).
- * 2. Usunięto wizualny czop (łącznik), aby nie wystawał ponad podłogę.
- * 3. Dodano zaślepkę góry rury (nieprzenikalność).
- */
 export class VerticalStandardsLW extends LayherPartsBase {
     constructor(length, variant = 'withSpigot') {
         super();
@@ -47,9 +39,8 @@ export class VerticalStandardsLW extends LayherPartsBase {
 
     _build() {
         const group = new THREE.Group();
-        const rPipe = 0.02415; // fi 48.3mm
+        const rPipe = 0.02415; 
 
-        // 1. Rura główna
         const tube = new THREE.Mesh(
             new THREE.CylinderGeometry(rPipe, rPipe, this.length, 16),
             this.matGalvNew
@@ -59,22 +50,14 @@ export class VerticalStandardsLW extends LayherPartsBase {
         tube.receiveShadow = true;
         group.add(tube);
 
-        // 2. Zaślepka góry (Nieprzenikalność)
-        // Dysk na szczycie rury, żeby nie było widać "dziury" ani przenikania
         const capGeo = new THREE.CylinderGeometry(rPipe, rPipe, 0.005, 16);
-        const cap = new THREE.Mesh(capGeo, this.matGalvNew); // Ten sam materiał co rura
+        const cap = new THREE.Mesh(capGeo, this.matGalvNew); 
         cap.position.y = this.length; 
         group.add(cap);
 
-        // 3. Rozety (Rosettes)
-        // Generujemy rozety co 0.5m, ALE zawsze wymuszamy rozetę na samej górze.
-        // Rozeta górna jest kluczowa dla oparcia rygli podłogi.
-        
-        // Rozety pośrednie (0.5m, 1.0m itd.)
         const count = Math.floor(this.length / 0.5);
         for (let i = 1; i < count; i++) {
             const y = i * 0.5;
-            // Dodajemy tylko jeśli nie jest zbyt blisko samej góry (bo tam damy topRosette)
             if (y < this.length - 0.1) { 
                 const ros = new THREE.Mesh(this.geoRosette, this.matGalvNew);
                 ros.position.y = y;
@@ -83,26 +66,21 @@ export class VerticalStandardsLW extends LayherPartsBase {
             }
         }
 
-        // 4. Górna Rozeta (ZAWSZE)
-        // Znajduje się ok. 2-3 cm poniżej szczytu rury, by rygiel leżał na niej, a jego wierzch licował się ze stojakiem.
         const topRosetteY = this.length - 0.025; 
         const topRos = new THREE.Mesh(this.geoRosette, this.matGalvNew);
         topRos.position.y = topRosetteY;
         topRos.castShadow = true;
         group.add(topRos);
 
-        // 5. Naklejka
         const stickerGeo = new THREE.CylinderGeometry(rPipe + 0.001, rPipe + 0.001, 0.08, 16, 1, true);
         const sticker = new THREE.Mesh(stickerGeo, this.matPlasticRed);
-        // Pozycjonujemy naklejkę w widocznym miejscu, ale nie na rozecie
         const stickerPos = (this.length > 0.5) ? this.length - 0.3 : 0.25;
         sticker.position.y = Math.max(0.15, stickerPos);
         group.add(sticker);
 
-        // 6. Nity (Detale)
         const rivetCount = Math.floor(this.length);
         for (let i = 1; i < rivetCount; i++) {
-            const rivY = i * 1.0 - 0.25; // Pomiędzy rozetami
+            const rivY = i * 1.0 - 0.25; 
             if (rivY > 0 && rivY < this.length) {
                 const riv = new THREE.Mesh(this.geoRivet, this.matHighSteel);
                 riv.position.set(rPipe, rivY, 0);
@@ -111,16 +89,10 @@ export class VerticalStandardsLW extends LayherPartsBase {
             }
         }
 
-        // UWAGA: USUNIĘTO GENEROWANIE CZOPA (SPIGOT)
-        // Zgodnie z instrukcją "zawsze nie moze byc widac u niego lacznika o gory".
-        // Nawet jeśli variant='withSpigot', nie dodajemy geometrii, 
-        // aby podłoga leżała płasko na szczycie stojaka.
-
         return group;
     }
 }
 
-// --- POZOSTAŁE KLASY BEZ ZMIAN (Dla kompletności pliku) ---
 
 export class BaseJacks extends LayherPartsBase {
     constructor(type, extension = 0.3) {
@@ -210,7 +182,6 @@ export class BaseCollarNormal extends LayherPartsBase {
         const length = 0.24;
         const rCollar = 0.0265;
 
-        // Rura
         const tube = new THREE.Mesh(
             new THREE.CylinderGeometry(rCollar, rCollar, length, 24),
             this.matGalvNew
@@ -218,14 +189,12 @@ export class BaseCollarNormal extends LayherPartsBase {
         tube.position.y = length / 2;
         group.add(tube);
 
-        // Rim (Dolny kołnierz)
         const rimH = 0.04;
         const rimGeo = new THREE.CylinderGeometry(rCollar + 0.008, rCollar + 0.002, rimH, 24);
         const rim = new THREE.Mesh(rimGeo, this.matCastSteel);
         rim.position.y = 0.02 + rimH / 2;
         group.add(rim);
 
-        // Rozeta (w Base Collar zawsze jest jedna, ok 17cm od dołu)
         const ros = new THREE.Mesh(this.geoRosette, this.matGalvNew);
         ros.position.y = 0.17; 
         group.add(ros);

@@ -17,7 +17,6 @@
                     <form asp-action="Edit" enctype="multipart/form-data">
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
                         
-                        @* Kluczowe pola ukryte *@
                         <input type="hidden" asp-for="Id" />
                         <input type="hidden" asp-for="MiniaturkaUrl" />
 
@@ -52,7 +51,6 @@
 
                         <hr class="my-4" />
                         
-                        @* --- SEKCJA GALERII Z MOŻLIWOŚCIĄ USUWANIA --- *@
                         <div class="mb-4">
                             <label class="form-label fw-bold d-block mb-3">Zarządzaj aktualną galerią (kliknij X aby usunąć):</label>
                             <div class="d-flex flex-wrap gap-3 bg-light p-3 rounded border shadow-inner" id="gallery-container">
@@ -110,24 +108,18 @@
 
 @section Scripts {
     <script>
-        /**
-         * Funkcja usuwająca pojedyncze zdjęcie z galerii przez AJAX
-         */
         async function deletePhoto(photoId) {
             if (!confirm("Czy na pewno chcesz bezpowrotnie usunąć to zdjęcie z serwera?")) return;
 
             try {
-                // Wysyłamy żądanie POST do nowej metody w kontrolerze
                 const response = await fetch(`/Realizacje/UsunZdjecie/${photoId}`, {
                     method: 'POST',
                     headers: {
-                        // Pobieramy token anty-fałszerski z formularza
                         'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
                     }
                 });
 
                 if (response.ok) {
-                    // Usuwamy element z widoku po udanym skasowaniu w bazie i na dysku
                     const element = document.getElementById(`photo-wrapper-${photoId}`);
                     element.style.opacity = '0';
                     setTimeout(() => element.remove(), 300);

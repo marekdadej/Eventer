@@ -6,7 +6,6 @@
 }
 
 <style>
-    /* 1. RESET KONTENERA LAYOUTU */
     .container {
         max-width: 100% !important;
         padding: 0 !important;
@@ -14,15 +13,6 @@
     }
     
     main.pb-3 { padding-bottom: 0 !important; }
-
-    /* 2. GŁÓWNY UKŁAD WORKSPACE */
-    .workspace {
-        height: calc(100vh - 130px); 
-        display: flex;
-        overflow: hidden;
-        position: relative;
-        background-color: #121212;
-    }
 
     :root {
         --bg-panel: #1e1e1e;
@@ -36,7 +26,14 @@
         --transition: all 0.2s ease;
     }
 
-    /* 3. SIDEBAR (LEWY PANEL) */
+    .workspace {
+        height: calc(100vh - 130px); 
+        display: flex;
+        overflow: hidden;
+        position: relative;
+        background-color: #121212;
+    }
+
     .sidebar {
         width: 420px;
         min-width: 420px;
@@ -46,11 +43,29 @@
         flex-direction: column;
         z-index: 10;
         color: var(--text-main);
+        transition: transform 0.3s ease;
     }
+
+    .sidebar-mobile-header {
+        display: none;
+        padding: 15px;
+        background-color: #252526;
+        border-bottom: 1px solid var(--border);
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+    }
+
+    .sidebar-content-wrapper {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        overflow: hidden;
+    }
+
     .sidebar-scroll { flex: 1; overflow-y: auto; padding: 20px; }
     .sidebar-footer { padding: 20px; border-top: 1px solid var(--border); background: #252526; }
 
-    /* 4. KONFIGURACJA SEKCJI */
     .config-section {
         background: rgba(255,255,255,0.03);
         border: 1px solid var(--border);
@@ -74,7 +89,6 @@
     .config-section.collapsed .section-content { display: none; }
     .section-content { padding: 15px; }
 
-    /* 5. FORMULARZE */
     .form-group { margin-bottom: 18px; }
     label { display: flex; justify-content: space-between; font-size: 0.8rem; color: #aaa; margin-bottom: 6px; font-weight: 500; }
     label span.val { color: var(--accent); font-family: monospace; }
@@ -116,13 +130,17 @@
     .col { flex: 1; }
     .sub-options { margin-left: 10px; margin-top: 10px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 4px; border-left: 2px solid var(--accent); }
     
-    /* 6. VIEWPORT / SCENA 3D */
     .viewport-container {
-        flex: 1; position: relative;
+        flex: 1; 
+        position: relative;
         background-color: #121212;
-        overflow: hidden; width: 100%; height: 100%;
+        overflow: hidden; 
+        width: 100%; 
+        height: 100%;
         padding: 20px;
-        display: flex; align-items: center; justify-content: center;
+        display: flex; 
+        align-items: center; 
+        justify-content: center;
     }
 
     .viz-window {
@@ -167,8 +185,7 @@
         pointer-events: none; 
     }
 
-    /* 7. WALIDACJA - NAPRAWIONA RAMKA */
-    .validation-summary-valid { display: none; } /* Ukrywa gdy brak błędów */
+    .validation-summary-valid { display: none; }
     .validation-summary-errors {
         background-color: rgba(255, 68, 68, 0.1);
         border: 1px solid #ff4444;
@@ -181,292 +198,335 @@
     }
     .validation-summary-errors ul { list-style: none; padding: 0; margin: 0; }
     .text-danger { color: #ff6666 !important; font-size: 0.8em; margin-top: 4px; display: block; }
+
+    @@media (max-width: 991.98px) {
+        .workspace {
+            flex-direction: column;
+            height: auto !important;
+            overflow: visible;
+        }
+
+        .sidebar {
+            width: 100%;
+            min-width: 0;
+            border-right: none;
+            border-bottom: 1px solid var(--border);
+            height: auto;
+            order: 1;
+        }
+
+        .sidebar-mobile-header { display: flex; }
+        .sidebar-content-wrapper { display: none; }
+        
+        .sidebar-content-wrapper.mobile-expanded { 
+            display: flex; 
+            max-height: 500px;
+        }
+        
+        .viewport-container {
+            order: 2;
+            flex: none !important;
+            height: 50vh !important;
+            min-height: 400px;
+            padding: 10px;
+            display: block;
+        }
+        
+        .viz-window {
+            height: 100% !important;
+        }
+    }
 </style>
 
 <div class="workspace">
-    <aside class="sidebar">
-        <div class="sidebar-scroll">
-            <h4 style="color:white; margin-bottom:15px; font-weight:800;">KONFIGURATOR</h4>
+    <aside class="sidebar" id="mainSidebar">
+        <div class="sidebar-mobile-header" onclick="toggleMobileMenu()">
+            <h4 style="color:white; margin:0; font-weight:800; font-size: 1rem;">KONFIGURATOR</h4>
+            <i class="bi bi-list" id="mobileMenuIcon" style="font-size: 1.5rem;"></i>
+        </div>
 
-            <form asp-action="@(Model.Id > 0 ? "Edit" : "Create")" method="post" id="configForm">
-                @if(Model.Id > 0) { <input type="hidden" asp-for="Id" /> }
-                
-                <div asp-validation-summary="All"></div>
-                
-                <input type="hidden" id="imageUrlInput" name="ImageUrl" />
+        <div class="sidebar-content-wrapper" id="sidebarContent">
+            <div class="sidebar-scroll">
+                <h4 class="d-none d-lg-block" style="color:white; margin-bottom:15px; font-weight:800;">KONFIGURATOR</h4>
 
-                <div class="config-section active">
-                    <div class="section-header" onclick="toggleSection(this)">
-                        <span>1. Projekt</span> <i class="bi bi-chevron-down"></i>
-                    </div>
-                    <div class="section-content">
-                        <div class="form-group">
-                            <label>Nazwa wydarzenia <span style="color:red">*</span></label>
-                            <input type="text" asp-for="Name" class="form-control" placeholder="Wpisz nazwę wydarzenia" required />
-                            <span asp-validation-for="Name" class="text-danger"></span>
-                        </div>
-                        <div class="form-group">
-                            <label>Typ Sceny</label>
-                            <select asp-for="MainType" id="mainType" class="form-select" style="font-weight:bold; border-left:3px solid var(--accent)">
-                                <option value="stageWithRoof">Scena z dachem</option>
-                                <option value="stageNoRoof">Scena bez dachu</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Środowisko</label>
-                            <select asp-for="EnvMode" id="envMode" class="form-select">
-                                <option value="mono">Ciemne Studio</option>
-                                <option value="natural">Plener (Dzień)</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
+                <form asp-action="@(Model.Id > 0 ? "Edit" : "Create")" method="post" id="configForm">
+                    @if(Model.Id > 0) { <input type="hidden" asp-for="Id" /> }
+                    <div asp-validation-summary="All"></div>
+                    <input type="hidden" id="imageUrlInput" name="ImageUrl" />
 
-                <div id="sectionStage" class="config-section active">
-                    <div class="section-header" onclick="toggleSection(this)">
-                        <span>2. Podłoga</span> <i class="bi bi-chevron-down"></i>
-                    </div>
-                    <div class="section-content">
-                        <div class="form-group">
-                            <label>System Podłogi</label>
-                            <select asp-for="FloorType" id="floorType" class="form-select">
-                                <option value="layher">Layher Event (Podesty)</option>
-                                <option value="peri">Peri (Sklejka)</option>
-                            </select>
+                    <div class="config-section active">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <span>1. Projekt</span> <i class="bi bi-chevron-down"></i>
                         </div>
-                        <div class="form-group">
-                            <label>Wymiary Sceny</label>
-                            <div class="row-2">
-                                <div class="col">
-                                    <label style="font-size:0.7em">Szerokość</label>
-                                    <select asp-for="StageWidth" id="stageWidth" class="form-select"></select>
-                                </div>
-                                <div class="col">
-                                    <label style="font-size:0.7em">Głębokość</label>
-                                    <select asp-for="StageDepth" id="stageDepth" class="form-select"></select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Wysokość Podłogi <span class="val" id="stageHeight_val">1.5m</span></label>
-                            <input type="range" asp-for="StageHeight" id="stageHeight" min="1.0" max="2.5" step="0.1">
-                        </div>
-                    </div>
-                </div>
-
-                <div id="sectionRoof" class="config-section active">
-                    <div class="section-header" onclick="toggleSection(this)">
-                        <span>3. Zadaszenie</span> <i class="bi bi-chevron-down"></i>
-                    </div>
-                    <div class="section-content">
-                        <label class="custom-check form-group">
-                            <input type="checkbox" asp-for="IncludeRoof" id="includeRoof">
-                            <span>Włącz Dach</span>
-                        </label>
-                        
-                        <div id="roofOptions">
+                        <div class="section-content">
                             <div class="form-group">
-                                <label>Typ Dachu</label>
-                                <select asp-for="RoofType" id="roofType" class="form-select">
-                                    <option value="prolyte">Prolyte MPT (Kratownica)</option>
-                                    <option value="layher">Layher Keder XL (Plandeka)</option>
+                                <label>Nazwa wydarzenia <span style="color:red">*</span></label>
+                                <input type="text" asp-for="Name" class="form-control" placeholder="Wpisz nazwę wydarzenia" required />
+                                <span asp-validation-for="Name" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label>Typ Sceny</label>
+                                <select asp-for="MainType" id="mainType" class="form-select" style="font-weight:bold; border-left:3px solid var(--accent)">
+                                    <option value="stageWithRoof">Scena z dachem</option>
+                                    <option value="stageNoRoof">Scena bez dachu</option>
                                 </select>
                             </div>
+                            <div class="form-group">
+                                <label>Środowisko</label>
+                                <select asp-for="EnvMode" id="envMode" class="form-select">
+                                    <option value="mono">Ciemne Studio</option>
+                                    <option value="natural">Plener (Dzień)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="sectionStage" class="config-section active">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <span>2. Podłoga</span> <i class="bi bi-chevron-down"></i>
+                        </div>
+                        <div class="section-content">
+                            <div class="form-group">
+                                <label>System Podłogi</label>
+                                <select asp-for="FloorType" id="floorType" class="form-select">
+                                    <option value="layher">Layher Event (Podesty)</option>
+                                    <option value="peri">Peri (Sklejka)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Wymiary Sceny</label>
+                                <div class="row-2">
+                                    <div class="col">
+                                        <label style="font-size:0.7em">Szerokość</label>
+                                        <select asp-for="StageWidth" id="stageWidth" class="form-select"></select>
+                                    </div>
+                                    <div class="col">
+                                        <label style="font-size:0.7em">Głębokość</label>
+                                        <select asp-for="StageDepth" id="stageDepth" class="form-select"></select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Wysokość Podłogi <span class="val" id="stageHeight_val">1.5m</span></label>
+                                <input type="range" asp-for="StageHeight" id="stageHeight" min="1.0" max="2.5" step="0.1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="sectionRoof" class="config-section active">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <span>3. Zadaszenie</span> <i class="bi bi-chevron-down"></i>
+                        </div>
+                        <div class="section-content">
+                            <label class="custom-check form-group">
+                                <input type="checkbox" asp-for="IncludeRoof" id="includeRoof">
+                                <span>Włącz Dach</span>
+                            </label>
                             
-                            <div id="prolyteOptions" class="sub-options">
+                            <div id="roofOptions">
                                 <div class="form-group">
-                                    <label>Wariant Konstrukcji</label>
-                                    <select asp-for="ProlyteVariant" id="prolyteVariant" class="form-select">
-                                        <option value="standard">Standard (Słupy MPT)</option>
-                                        <option value="layher_base">Na bazach Layher</option>
-                                        <option value="suspended">Podwieszany na wieżach</option>
-                                        <option value="frame">Sama Obwiednia (Grid)</option>
+                                    <label>Typ Dachu</label>
+                                    <select asp-for="RoofType" id="roofType" class="form-select">
+                                        <option value="prolyte">Prolyte MPT (Kratownica)</option>
+                                        <option value="layher">Layher Keder XL (Plandeka)</option>
+                                    </select>
+                                </div>
+                                
+                                <div id="prolyteOptions" class="sub-options">
+                                    <div class="form-group">
+                                        <label>Wariant Konstrukcji</label>
+                                        <select asp-for="ProlyteVariant" id="prolyteVariant" class="form-select">
+                                            <option value="standard">Standard (Słupy MPT)</option>
+                                            <option value="layher_base">Na bazach Layher</option>
+                                            <option value="suspended">Podwieszany na wieżach</option>
+                                            <option value="frame">Sama Obwiednia (Grid)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Prześwit (Clearance) <span class="val" id="roofClearance_val">7.0m</span></label>
+                                        <input type="range" asp-for="RoofClearance" id="roofClearance" min="5" max="12" step="0.5">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="custom-check">
+                                            <input type="checkbox" asp-for="ProlyteScrim" id="prolyteScrim">
+                                            <span>Siatki boczne</span>
+                                        </label>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="custom-check">
+                                            <input type="checkbox" asp-for="AddBallast" id="addBallast">
+                                            <span>Balasty (Mausery)</span>
+                                        </label>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Wingi (PA Wings)</label>
+                                        <div class="row-2">
+                                            <div class="col">
+                                                <select asp-for="WingWidthBays" id="wingWidthBays" class="form-select">
+                                                    <option value="0">Brak</option>
+                                                    <option value="1">2.07 m</option>
+                                                    <option value="2">4.14 m</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="layherOptions" class="sub-options hidden">
+                                    <div class="form-group">
+                                        <label class="custom-check">
+                                            <input type="checkbox" asp-for="LayherScrim" id="layherScrim">
+                                            <span>Pełne siatki (Tył/Boki)</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="sectionFoh" class="config-section active">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <span>4. FOH (Reżyserka)</span> <i class="bi bi-chevron-down"></i>
+                        </div>
+                        <div class="section-content">
+                            <label class="custom-check form-group">
+                                <input type="checkbox" asp-for="IncludeFoh" id="includeFoh">
+                                <span>Włącz FOH</span>
+                            </label>
+                            
+                            <div id="fohOptions" class="conditional-options hidden">
+                                <div class="form-group">
+                                    <label>Typ Konstrukcji</label>
+                                    <select asp-for="FohType" id="fohType" class="form-select">
+                                        <option value="ground">Parterowy (1 poziom)</option>
+                                        <option value="twoStory">Piętrowy (2 poziomy)</option>
+                                        <option value="threeStory">Trzypiętrowy (3 poziomy)</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label>Prześwit (Clearance) <span class="val" id="roofClearance_val">7.0m</span></label>
-                                    <input type="range" asp-for="RoofClearance" id="roofClearance" min="5" max="12" step="0.5">
+                                    <label>Szerokość FOH</label>
+                                    <select asp-for="FohWidth" id="fohWidth" class="form-select">
+                                        <option value="2.07">2.07m</option>
+                                        <option value="4.14">4.14m</option>
+                                        <option value="6.21">6.21m</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Głębokość FOH</label>
+                                    <select asp-for="FohDepth" id="fohDepth" class="form-select">
+                                        <option value="2.07">2.07m</option>
+                                        <option value="4.14">4.14m</option>
+                                        <option value="6.21">6.21m</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Odległość od sceny <span class="val" id="fohDist_val">20m</span></label>
+                                    <input type="range" asp-for="FohDist" id="fohDist" min="10" max="50" step="1">
+                                </div>
+                                
+                                <div class="form-group" style="margin-top: 20px; border-top: 1px solid #333; padding-top: 15px;">
+                                    <label class="custom-check">
+                                        <input type="checkbox" asp-for="FohTower" id="fohTower">
+                                        <span>Wieża Delay (Tył FOH)</span>
+                                    </label>
+                                </div>
+                                
+                                <div id="towerOptions" class="sub-options hidden">
+                                    <div class="form-group">
+                                        <label>Głębokość Wieży</label>
+                                        <select asp-for="TowerDepth" id="towerDepth" class="form-select">
+                                            <option value="2.07">2.07 m (1 klatka)</option>
+                                            <option value="4.14">4.14 m (2 klatki)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Wysokość Wieży <span class="val" id="towerHeight_val">6.0m</span></label>
+                                        <input type="range" asp-for="TowerHeight" id="towerHeight" min="4.0" max="16.0" step="0.5">
+                                    </div>
                                 </div>
                                 <div class="form-group">
                                     <label class="custom-check">
-                                        <input type="checkbox" asp-for="ProlyteScrim" id="prolyteScrim">
-                                        <span>Siatki boczne</span>
+                                        <input type="checkbox" asp-for="ShowMausery" id="showMausery">
+                                        <span>Pokaż Mausery (balast)</span>
                                     </label>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="sectionExtras" class="config-section active">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <span>5. Dodatki</span> <i class="bi bi-chevron-down"></i>
+                        </div>
+                        <div class="section-content">
+                            <div class="form-group">
+                                <label>Wybieg (Catwalk)</label>
+                                <select asp-for="CatwalkType" id="catwalkType" class="form-select">
+                                    <option value="none">Brak</option>
+                                    <option value="single">Prosty</option>
+                                    <option value="double">Podwójny T</option>
+                                </select>
+                            </div>
+                            <div id="catwalkOptions" class="sub-options hidden">
                                 <div class="form-group">
-                                    <label class="custom-check">
-                                        <input type="checkbox" asp-for="AddBallast" id="addBallast">
-                                        <span>Balasty (Mausery)</span>
-                                    </label>
+                                    <label>Długość Wybiegu</label>
+                                    <select asp-for="CatwalkDepth" id="catwalkDepth" class="form-select">
+                                        <option value="4.14">4.14 m</option>
+                                        <option value="6.21">6.21 m</option>
+                                        <option value="8.28">8.28 m</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Risery boczne (Monitor/Tech)</label>
+                                <select asp-for="RiserCount" id="riserCount" class="form-select">
+                                    <option value="0">Brak</option>
+                                    <option value="1">1 Riser</option>
+                                    <option value="2">2 Risery</option>
+                                </select>
+                            </div>
+                            <div id="riserOptions" class="sub-options hidden">
+                                <div class="form-group">
+                                    <label>Strona</label>
+                                    <select asp-for="RiserSide" id="riserSide" class="form-select">
+                                        <option value="left">Lewa (Stage Left)</option>
+                                        <option value="right">Prawa (Stage Right)</option>
+                                        <option value="both">Obie strony</option>
+                                    </select>
                                 </div>
                                 <div class="form-group">
-                                    <label>Wingi (PA Wings)</label>
+                                    <label>Wymiary Risera</label>
                                     <div class="row-2">
                                         <div class="col">
-                                            <select asp-for="WingWidthBays" id="wingWidthBays" class="form-select">
-                                                <option value="0">Brak</option>
-                                                <option value="1">2.07 m</option>
-                                                <option value="2">4.14 m</option>
+                                            <select asp-for="RiserWidth" id="riserWidth" class="form-select">
+                                                <option value="2.07">2.07 m</option>
+                                                <option value="4.14">4.14 m</option>
+                                            </select>
+                                        </div>
+                                        <div class="col">
+                                            <select asp-for="RiserDepth" id="riserDepth" class="form-select">
+                                                <option value="2.07">2.07 m</option>
+                                                <option value="4.14">4.14 m</option>
                                             </select>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-
-                            <div id="layherOptions" class="sub-options hidden">
-                                <div class="form-group">
-                                    <label class="custom-check">
-                                        <input type="checkbox" asp-for="LayherScrim" id="layherScrim">
-                                        <span>Pełne siatki (Tył/Boki)</span>
-                                    </label>
-                                </div>
-                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div id="sectionFoh" class="config-section active">
-                    <div class="section-header" onclick="toggleSection(this)">
-                        <span>4. FOH (Reżyserka)</span> <i class="bi bi-chevron-down"></i>
-                    </div>
-                    <div class="section-content">
-                        <label class="custom-check form-group">
-                            <input type="checkbox" asp-for="IncludeFoh" id="includeFoh">
-                            <span>Włącz FOH</span>
-                        </label>
-                        
-                        <div id="fohOptions" class="conditional-options hidden">
-                            <div class="form-group">
-                                <label>Typ Konstrukcji</label>
-                                <select asp-for="FohType" id="fohType" class="form-select">
-                                    <option value="ground">Parterowy (1 poziom)</option>
-                                    <option value="twoStory">Piętrowy (2 poziomy)</option>
-                                    <option value="threeStory">Trzypiętrowy (3 poziomy)</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Szerokość FOH</label>
-                                <select asp-for="FohWidth" id="fohWidth" class="form-select">
-                                    <option value="2.07">2.07m</option>
-                                    <option value="4.14">4.14m</option>
-                                    <option value="6.21">6.21m</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Głębokość FOH</label>
-                                <select asp-for="FohDepth" id="fohDepth" class="form-select">
-                                    <option value="2.07">2.07m</option>
-                                    <option value="4.14">4.14m</option>
-                                    <option value="6.21">6.21m</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Odległość od sceny <span class="val" id="fohDist_val">20m</span></label>
-                                <input type="range" asp-for="FohDist" id="fohDist" min="10" max="50" step="1">
-                            </div>
-                            
-                            <div class="form-group" style="margin-top: 20px; border-top: 1px solid #333; padding-top: 15px;">
-                                <label class="custom-check">
-                                    <input type="checkbox" asp-for="FohTower" id="fohTower">
-                                    <span>Wieża Delay (Tył FOH)</span>
-                                </label>
-                            </div>
-                            
-                            <div id="towerOptions" class="sub-options hidden">
-                                <div class="form-group">
-                                    <label>Głębokość Wieży</label>
-                                    <select asp-for="TowerDepth" id="towerDepth" class="form-select">
-                                        <option value="2.07">2.07 m (1 klatka)</option>
-                                        <option value="4.14">4.14 m (2 klatki)</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Wysokość Wieży <span class="val" id="towerHeight_val">6.0m</span></label>
-                                    <input type="range" asp-for="TowerHeight" id="towerHeight" min="4.0" max="16.0" step="0.5">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="custom-check">
-                                    <input type="checkbox" asp-for="ShowMausery" id="showMausery">
-                                    <span>Pokaż Mausery (balast)</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="sectionExtras" class="config-section active">
-                    <div class="section-header" onclick="toggleSection(this)">
-                        <span>5. Dodatki</span> <i class="bi bi-chevron-down"></i>
-                    </div>
-                    <div class="section-content">
-                        <div class="form-group">
-                            <label>Wybieg (Catwalk)</label>
-                            <select asp-for="CatwalkType" id="catwalkType" class="form-select">
-                                <option value="none">Brak</option>
-                                <option value="single">Prosty</option>
-                                <option value="double">Podwójny T</option>
-                            </select>
-                        </div>
-                        <div id="catwalkOptions" class="sub-options hidden">
-                            <div class="form-group">
-                                <label>Długość Wybiegu</label>
-                                <select asp-for="CatwalkDepth" id="catwalkDepth" class="form-select">
-                                    <option value="4.14">4.14 m</option>
-                                    <option value="6.21">6.21 m</option>
-                                    <option value="8.28">8.28 m</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Risery boczne (Monitor/Tech)</label>
-                            <select asp-for="RiserCount" id="riserCount" class="form-select">
-                                <option value="0">Brak</option>
-                                <option value="1">1 Riser</option>
-                                <option value="2">2 Risery</option>
-                            </select>
-                        </div>
-                        <div id="riserOptions" class="sub-options hidden">
-                            <div class="form-group">
-                                <label>Strona</label>
-                                <select asp-for="RiserSide" id="riserSide" class="form-select">
-                                    <option value="left">Lewa (Stage Left)</option>
-                                    <option value="right">Prawa (Stage Right)</option>
-                                    <option value="both">Obie strony</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Wymiary Risera</label>
-                                <div class="row-2">
-                                    <div class="col">
-                                        <select asp-for="RiserWidth" id="riserWidth" class="form-select">
-                                            <option value="2.07">2.07 m</option>
-                                            <option value="4.14">4.14 m</option>
-                                        </select>
-                                    </div>
-                                    <div class="col">
-                                        <select asp-for="RiserDepth" id="riserDepth" class="form-select">
-                                            <option value="2.07">2.07 m</option>
-                                            <option value="4.14">4.14 m</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </form>
-        </div>
-        
-        <div class="sidebar-footer">
-            <button type="button" id="btnSave" class="btn-primary-custom"><i class="bi bi-floppy2-fill"></i> Zapisz Projekt</button>
-        </div>
-        
-        <div class="status-bar-custom">
-            <div class="status-item"><div id="statusDot" class="status-dot busy"></div> <span id="statusText" style="margin-left:8px">Ładowanie...</span></div>
-            <div class="status-item"><span>v5.0 Stable</span></div>
+                </form>
+            </div>
+            
+            <div class="sidebar-footer">
+                <button type="button" id="btnSave" class="btn-primary-custom"><i class="bi bi-floppy2-fill"></i> Zapisz Projekt</button>
+            </div>
+            
+            <div class="status-bar-custom">
+                <div class="status-item"><div id="statusDot" class="status-dot busy"></div> <span id="statusText" style="margin-left:8px">Ładowanie...</span></div>
+                <div class="status-item"><span>Eventer 3D Studio</span></div>
+            </div>
         </div>
     </aside>
 
@@ -487,18 +547,34 @@
 <script type="module">
     import { initApp, updateSceneData, getScreenshot, resetCamera, toggleGrid } from '/js/3d/main.js?v=@DateTime.Now.Ticks';
     
-    // Eksport do okna dla przycisków HTML
     window.resetCamera = resetCamera;
     window.toggleGrid = toggleGrid;
 
     let debounceTimer;
     
-    // Dane z modelu (przywracanie przy edycji)
     const savedStageWidth = @(Model.StageWidth > 0 ? Model.StageWidth.ToString(System.Globalization.CultureInfo.InvariantCulture) : "10.35");
     const savedStageDepth = @(Model.StageDepth > 0 ? Model.StageDepth.ToString(System.Globalization.CultureInfo.InvariantCulture) : "8.28");
 
     window.toggleSection = function(el) {
         el.parentElement.classList.toggle('collapsed');
+    }
+
+    window.toggleMobileMenu = function() {
+        const content = document.getElementById('sidebarContent');
+        const icon = document.getElementById('mobileMenuIcon');
+        content.classList.toggle('mobile-expanded');
+        
+        if (content.classList.contains('mobile-expanded')) {
+            icon.classList.remove('bi-list');
+            icon.classList.add('bi-x-lg');
+        } else {
+            icon.classList.remove('bi-x-lg');
+            icon.classList.add('bi-list');
+        }
+
+        setTimeout(() => {
+            window.dispatchEvent(new Event('resize'));
+        }, 350);
     }
     
     function debounce(func, timeout = 100) {
@@ -508,7 +584,6 @@
         };
     }
 
-    // --- OBSŁUGA ZAPISU (POPRAWIONA) ---
     document.getElementById('btnSave').addEventListener('click', async () => {
         const btn = document.getElementById('btnSave');
         const form = document.getElementById('configForm');
@@ -525,7 +600,6 @@
             const imgData = getScreenshot();
             const imgInput = document.getElementById('imageUrlInput');
             
-            // Bezpieczne wstawianie obrazu (nie rzuca błędem jeśli pole jest nullem)
             if (imgInput) {
                 imgInput.value = imgData || "";
             }
@@ -539,7 +613,6 @@
         }
     });
 
-    // --- LOGIKA FORMULARZA ---
     function updateStageOptions(mode, maxModules = 15, forceW = null, forceD = null) {
         const wSel = document.getElementById('stageWidth');
         const dSel = document.getElementById('stageDepth');
@@ -700,6 +773,15 @@
             initApp('vizContainer');
             document.getElementById('statusText').innerText = 'Silnik 3D działa';
             document.getElementById('statusDot').className = 'status-dot ok';
+            
+            const container = document.getElementById('vizContainer');
+            if (container) {
+                const resizeObserver = new ResizeObserver(() => {
+                    window.dispatchEvent(new Event('resize'));
+                });
+                resizeObserver.observe(container);
+            }
+
         } catch(e) {
             console.error("Init Error", e);
             document.getElementById('statusText').innerText = 'Błąd inicjalizacji';

@@ -1,10 +1,6 @@
 import * as THREE from 'three';
 import { LayherPartsBase } from './LayherCore.js';
 
-/**
- * ULedgers - U-rygle (Trawersy).
- * Zaktualizowano: Odsunięcie od osi stojaka o promień rury (brak przenikania).
- */
 export class ULedgers extends LayherPartsBase {
     constructor(length, variant = 'lwT14') { 
         super();
@@ -69,21 +65,16 @@ export class ULedgers extends LayherPartsBase {
         const isAlu = this.variant === 'event';
         const mat = isAlu ? this.matAlu : this.matGalvNew;
 
-        // ODSUNIĘCIE STOJAKA (Promień rury ~2.4cm + luz)
         const standOffset = 0.025;
 
-        // Offset konstrukcyjny głowicy U
         const headOffset = isAlu ? 0.038 : 0.045; 
         
-        // Długość samego profilu U
         const profileLen = len - 2 * (standOffset + headOffset);
 
-        // 1. Profil U
         let shape;
         let profileHeight;
 
         if (isAlu) {
-            // Wariant Event (Trawersa wysoka)
             profileHeight = 0.22; 
             const w = 0.045;
             const slotW = 0.02;
@@ -100,25 +91,20 @@ export class ULedgers extends LayherPartsBase {
             shape.lineTo(-w/2, profileHeight/2);
             shape.closePath();
         } else {
-            // Standard LW
             profileHeight = 0.054;
             shape = this._buildUProfileShape(this.variant);
         }
 
         const geo = new THREE.ExtrudeGeometry(shape, { depth: profileLen, bevelEnabled: false });
         
-        // Obrót i pozycja
         geo.rotateY(Math.PI / 2);
-        // Przesuwamy profil o (standOffset + headOffset) od zera
         geo.translate(standOffset + headOffset, 0, 0);
 
         const profile = new THREE.Mesh(geo, mat);
         group.add(profile);
 
-        // 2. Głowice (z uwzględnieniem standOffset)
         this._addWedgeHeads(group, len, standOffset);
 
-        // 3. Naklejka (Płaska)
         const stickerW = 0.12;
         const stickerH = 0.05;
         const stickerGeo = new THREE.PlaneGeometry(stickerW, stickerH);
@@ -133,7 +119,6 @@ export class ULedgers extends LayherPartsBase {
         s2.position.z = -stickerOffsetZ;
         group.add(s2);
 
-        // 4. Wzmocnienie (dla lwT14Reinforced)
         if (this.variant === 'lwT14Reinforced') {
             const trussH = 0.4;
             const rPipe = 0.02;
@@ -147,13 +132,11 @@ export class ULedgers extends LayherPartsBase {
 
             const step = 0.5;
             const steps = Math.floor(profileLen / step);
-            // Start kratownicy też przesunięty
             const startX = standOffset + headOffset;
             
             for (let i = 0; i < steps; i++) {
                 const x1 = startX + i * step;
                 const x2 = startX + (i + 1) * step;
-                // Krzyżulce
                 this._addTube(group, x1, 0, 0, x2, -trussH, 0, 0.012);
                 this._addTube(group, x2, 0, 0, x1, -trussH, 0, 0.012);
             }
@@ -166,7 +149,6 @@ export class ULedgers extends LayherPartsBase {
     }
 
     _addWedgeHeads(group, length, offset) {
-        // Lewa głowica
         const headL = new THREE.Mesh(this.geoWedgeHead, this.matCastSteel);
         headL.position.x = offset; 
         group.add(headL);
@@ -174,7 +156,6 @@ export class ULedgers extends LayherPartsBase {
         wedgeL.position.set(offset + 0.025, 0.045, 0);
         group.add(wedgeL);
 
-        // Prawa głowica
         const headR = headL.clone();
         headR.rotation.y = Math.PI;
         headR.position.x = length - offset; 

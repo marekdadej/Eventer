@@ -1,6 +1,4 @@
 import * as THREE from 'three';
-
-// ZMIANA: Wchodzimy do folderu './prolyte/'
 import { MPTStandard } from './prolyte/MPTStandard.js';
 import { MPTFrame } from './prolyte/MPTFrame.js';
 import { MPTLayherBase } from './prolyte/MPTLayherBase.js';
@@ -34,7 +32,6 @@ export class ProlyteMPT {
         
         let variant = config.variant || 'standard';
         
-        // Mapowanie
         if (config.prolyteVar === 'frame' || config.aluVar === 'frame') variant = 'frame';
         if (config.aluVar === 'layher') variant = 'layher_base';
 

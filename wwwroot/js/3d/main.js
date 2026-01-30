@@ -1,18 +1,10 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-
-// =============================================================================
-// IMPORTS - SYSTEMY KONSTRUKCYJNE
-// =============================================================================
-
 import { ProlyteMPT } from './ProlyteMPT.js';
 import { StageFloorSystem } from './StageFloorSystem.js';
 import { FohSystem } from './FohSystem.js';
 import { LayherRoof } from './layher/LayherRoof.js';
 
-// =============================================================================
-// GLOBAL VARIABLES & CONFIG
-// =============================================================================
 
 let app = null;
 
@@ -22,12 +14,8 @@ const RENDER_SETTINGS = {
     outputColorSpace: THREE.SRGBColorSpace,
     toneMapping: THREE.ACESFilmicToneMapping,
     toneMappingExposure: 1.2,
-    clearColor: 0xe0e0e0 // Studio grey
+    clearColor: 0xe0e0e0 
 };
-
-// =============================================================================
-// CORE APPLICATION CLASS
-// =============================================================================
 
 class App3D {
     constructor(containerId) {
@@ -58,12 +46,10 @@ class App3D {
     }
 
     init() {
-        // 1. Scena i Kamera
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(45, this.width / this.height, 0.1, 1000);
         this.camera.position.set(30, 20, 40);
 
-        // 2. Renderer
         this.renderer = new THREE.WebGLRenderer({ 
             antialias: RENDER_SETTINGS.antialias, 
             preserveDrawingBuffer: true,
@@ -80,7 +66,6 @@ class App3D {
         this.container.innerHTML = '';
         this.container.appendChild(this.renderer.domElement);
 
-        // 3. Kontrolery
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.controls.enableDamping = true;
         this.controls.dampingFactor = 0.05;
@@ -88,10 +73,8 @@ class App3D {
         this.controls.maxDistance = 300;
         this.controls.maxPolarAngle = Math.PI / 2 - 0.05;
 
-        // 4. Środowisko startowe
         this.setupEnvironment('mono');
 
-        // 5. Event Listeners
         this.resizeObserver = new ResizeObserver(() => this.onResize());
         this.resizeObserver.observe(this.container);
     }
@@ -184,12 +167,10 @@ class App3D {
     updateScene(data) {
         this.resetSystems();
 
-        // Helper do pobierania wartości niezależnie od wielkości liter (zabezpieczenie)
         const getVal = (key) => {
             return data[key] !== undefined ? data[key] : data[key.charAt(0).toLowerCase() + key.slice(1)];
         };
 
-        // --- POPRAWKA: Helper do Boolean (FormData przesyła stringi "true"/"false") ---
         const getBool = (key) => {
             let val = getVal(key);
             if (val === true || val === 'true') return true;
@@ -198,13 +179,11 @@ class App3D {
 
         const mainType = getVal('MainType') || 'stageWithRoof';
 
-        // Środowisko
         const env = getVal('EnvMode') || 'mono';
         if (env !== this.currentEnv) {
             this.setupEnvironment(env);
         }
 
-        // --- KONFIGURACJA PODSTAWOWA ---
         const stageConfig = {
             width: parseFloat(getVal('StageWidth')) || 10.35,
             depth: parseFloat(getVal('StageDepth')) || 8.28,
@@ -215,16 +194,12 @@ class App3D {
         this.systems.floor = new StageFloorSystem(this.scene);
         this.systems.floor.build(stageConfig);
 
-        // --- GŁÓWNA LOGIKA KONSTRUKCJI ---
         if (mainType === 'stageWithRoof' || mainType === 'stageNoRoof') {
             const includeRoof = mainType === 'stageWithRoof' || getBool('IncludeRoof');
 
-            // Dach
             if (includeRoof) {
                 const roofType = getVal('RoofType') || 'prolyte';
 
-                // --- POPRAWKA: Ujednolicona flaga dla siatek ---
-                // Sprawdzamy nową flagę hasScrim, a jak jej nie ma (stary kod), to sprawdzamy konkretne
                 const showScrim = data.hasScrim !== undefined 
                     ? (data.hasScrim === true || data.hasScrim === 'true')
                     : (getBool('prolyteScrim') || getBool('layherScrim'));
@@ -236,24 +211,22 @@ class App3D {
                         depth: stageConfig.depth + 2,
                         height: parseFloat(getVal('RoofClearance')) || 7.0,
                         variant: getVal('ProlyteVariant') || 'standard',
-                        hasScrim: showScrim, // Poprawione przekazywanie flagi
+                        hasScrim: showScrim, 
                         addBallast: getBool('addBallast')
                     });
                 } else if (roofType === 'layher') {
                     this.systems.roof = new LayherRoof(this.scene);
-                    // Pozycjonowanie dachu na wysokości sceny
                     this.systems.roof.group.position.y = stageConfig.height;
                     
                     this.systems.roof.build({
                         width: stageConfig.width,
                         depth: stageConfig.depth,
-                        height: stageConfig.height, // Ważne dla barierek
-                        hasScrim: showScrim // Poprawione przekazywanie flagi
+                        height: stageConfig.height, 
+                        hasScrim: showScrim 
                     });
                 }
             }
 
-            // FOH
             if (getBool('includeFoh')) {
                 this.systems.foh = new FohSystem(this.scene);
                 this.systems.foh.build({
@@ -333,10 +306,6 @@ class App3D {
         return this.renderer.domElement.toDataURL('image/jpeg', 0.95);
     }
 }
-
-// =============================================================================
-// EXPORTS
-// =============================================================================
 
 export function initApp(containerId) {
     if (app) return;

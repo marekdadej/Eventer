@@ -1,17 +1,12 @@
 import * as THREE from 'three';
-// POPRAWKA: Import z LayherCore.js
 import { LayherPartsBase } from './LayherCore.js';
 
-/**
- * ConsolesAndGirders - Konsole U/O LW i dźwigary kratowe U LW/Alu.
- * Dane z katalogu Layher Event/Allround 2024/2025.
- */
+
 export class ConsolesAndGirders extends LayherPartsBase {
     constructor() {
         super();
     }
 
-    // 1. U-konsola LW (a-f)
     createUConsoleLW(variant = 'a') {
         const group = new THREE.Group();
 
@@ -27,42 +22,27 @@ export class ConsolesAndGirders extends LayherPartsBase {
         const data = dataMap[variant];
         if (!data) throw new Error(`Brak danych dla wariantu U-konsoli ${variant}`);
 
-        const length = data.width; // Szerokość konsoli to jej długość robocza
-        
-        // Profil U
-        // _buildUProfileShape jest w LayherCore
+        const length = data.width; 
+
         const shape = this._buildUProfileShape(); 
-        // Długość profilu = długość całkowita - miejsce na głowice (ok 5cm)
         const profileLen = length - 0.05; 
         
         const geo = new THREE.ExtrudeGeometry(shape, { depth: profileLen, bevelEnabled: false });
         geo.rotateY(Math.PI / 2);
-        // Przesunięcie, by zaczynał się za głowicą
         geo.translate(length / 2, 0, 0);
 
         const profile = new THREE.Mesh(geo, this.matGalvNew);
         group.add(profile);
 
-        // Głowice klinowe (tylko z jednej strony przy konsolach, z drugiej zazwyczaj zaczep/spigot lub koniec)
-        // Ale konsole Layher mają głowice klinowe do wpięcia w stojak (x=0).
-        // Druga strona (x=length) ma często czop do poręczy (spigot).
-        
-        // Głowica przy stojaku (x=0)
         this._addWedgeHeads(group, 0);
 
-        // Jeśli wariant ma czop na końcu (dla poręczy), dodajemy go
-        // Większość konsol Layher ma czop.
         const rPipe = 0.02415;
         const spigot = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.15, 16), this.matGalvNew);
-        spigot.position.set(length - 0.025, 0.05, 0); // Na końcu, wystaje do góry
+        spigot.position.set(length - 0.025, 0.05, 0); 
         group.add(spigot);
 
-        // Zastrzał (Diagonal brace) - rurka pod spodem
-        // Od dołu głowicy do końca profilu
-        const braceLen = Math.sqrt(length*length + 0.3*0.3); // Przykład
-        // Uproszczony zastrzał
+        const braceLen = Math.sqrt(length*length + 0.3*0.3); 
         this._addTube(group, 0, -0.3, 0, length - 0.05, -0.05, 0, 0.016);
-        // Pionowy element przy głowicy
         this._addTube(group, 0, 0, 0, 0, -0.3, 0, 0.02);
 
         group.userData = {
@@ -79,7 +59,6 @@ export class ConsolesAndGirders extends LayherPartsBase {
         return group;
     }
 
-    // 2. O-konsola (a-f)
     createOConsole(variant = 'a') {
         const group = new THREE.Group();
 
@@ -98,7 +77,6 @@ export class ConsolesAndGirders extends LayherPartsBase {
         const length = data.width;
         const rPipe = 0.02415;
 
-        // Rura pozioma
         const tube = new THREE.Mesh(
             new THREE.CylinderGeometry(rPipe, rPipe, length - 0.05, 16),
             this.matGalvNew
@@ -107,15 +85,12 @@ export class ConsolesAndGirders extends LayherPartsBase {
         tube.position.x = length / 2;
         group.add(tube);
 
-        // Głowica klinowa przy stojaku (x=0)
         this._addWedgeHeads(group, 0);
 
-        // Spigot na końcu
         const spigot = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.15, 16), this.matGalvNew);
         spigot.position.set(length - 0.025, 0.05, 0);
         group.add(spigot);
 
-        // Zastrzał (dla szerszych konsol)
         if (length > 0.4) {
              this._addTube(group, 0, -0.3, 0, length - 0.05, -0.02, 0, 0.016);
              this._addTube(group, 0, 0, 0, 0, -0.3, 0, 0.02);
@@ -135,9 +110,8 @@ export class ConsolesAndGirders extends LayherPartsBase {
         return group;
     }
 
-    // 3. U-dźwigar kratowy aluminiowy
     createULatticeGirderAlu(length) {
-        const group = this._createLatticeGirder(length, true); // true = alu
+        const group = this._createLatticeGirder(length, true); 
         const dataMap = {
             1.57: { weight: 8.6, packQuantity: 50, catalogNumber: '3206.157' },
             2.07: { weight: 12.3, packQuantity: 50, catalogNumber: '3206.207' },
@@ -148,7 +122,6 @@ export class ConsolesAndGirders extends LayherPartsBase {
             6.14: { weight: 35.5, packQuantity: 40, catalogNumber: '3206.614' },
             6.21: { weight: 36.5, packQuantity: 40, catalogNumber: '3206.621' }
         };
-        // Fallback dla innych wymiarów
         const data = dataMap[length] || { weight: length * 5.0, catalogNumber: 'CUSTOM' };
         
         group.userData = {
@@ -160,9 +133,8 @@ export class ConsolesAndGirders extends LayherPartsBase {
         return group;
     }
 
-    // 4. U-dźwigar kratowy LW stalowy
     createULatticeGirderLW(length) {
-        const group = this._createLatticeGirder(length, false); // false = stal
+        const group = this._createLatticeGirder(length, false);
         const dataMap = {
             2.07: { weight: 21.4, packQuantity: 40, catalogNumber: '2673.207' },
             2.57: { weight: 24.9, packQuantity: 40, catalogNumber: '2673.257' },
@@ -183,7 +155,6 @@ export class ConsolesAndGirders extends LayherPartsBase {
         return group;
     }
 
-    // 5. O-dźwigar kratowy LW, stalowy
     createOLatticeGirderLW(length) {
         const group = this._createLatticeGirder(length, false); 
 
@@ -210,64 +181,49 @@ export class ConsolesAndGirders extends LayherPartsBase {
         return group;
     }
 
-    // Helper budujący kratownicę
     _createLatticeGirder(length, isAlu = true) {
         const group = new THREE.Group();
-        const trussH = 0.5; // Standardowa wysokość dźwigara Layher
-        const rChord = 0.024; // Pasy (rura 48.3)
-        const rBrace = 0.016; // Krzyżulce
+        const trussH = 0.5; 
+        const rChord = 0.024; 
+        const rBrace = 0.016; 
         const mat = isAlu ? this.matAlu : this.matGalvNew;
 
-        // Pas górny
         const chordGeo = new THREE.CylinderGeometry(rChord, rChord, length - 0.1, 16);
         const top = new THREE.Mesh(chordGeo, mat);
         top.rotation.z = Math.PI / 2;
         top.position.set(length / 2, trussH, 0);
         group.add(top);
 
-        // Pas dolny
         const bottom = top.clone();
-        bottom.position.y = 0; // Dolny pas na poziomie 0 (względem lokalnego układu, czyli na ryglu)
-        // Uwaga: Dźwigar montuje się na głowicach. Oś dolnego pasa jest na poziomie rygla.
+        bottom.position.y = 0; 
         group.add(bottom);
 
-        // Krzyżulce (Zig-Zag)
-        const step = 0.5; // Krok kratownicy
+        const step = 0.5; 
         const steps = Math.floor(length / step);
-        const startX = 0.05; // Offset od głowicy
+        const startX = 0.05; 
         
         for (let i = 0; i < steps; i++) {
             const x1 = startX + i * step;
             const x2 = startX + (i + 1) * step;
             
-            // Unikamy wyjścia poza długość
             if (x2 > length - 0.05) break;
 
-            // Rurka ukośna
             this._addTube(group, x1, 0, 0, x2, trussH, 0, rBrace, mat);
-            // Rurka pionowa
             this._addTube(group, x2, 0, 0, x2, trussH, 0, rBrace, mat);
         }
-        // Pierwszy pion
         this._addTube(group, startX, 0, 0, startX, trussH, 0, rBrace, mat);
 
-        // Głowice klinowe na końcach (4 sztuki: góra/dół, lewo/prawo)
-        // Layher ma głowice na dolnym i górnym pasie
-        this._addWedgeHeads(group, 0); // Dół Lewy
+        this._addWedgeHeads(group, 0);
         
-        // Górne głowice są przesunięte w górę
         const headTopL = new THREE.Mesh(this.geoWedgeHead, this.matCastSteel);
         headTopL.position.set(0, trussH, 0);
         group.add(headTopL);
-        
-        // Prawa strona
-        // Dolna
+   
         const headBotR = new THREE.Mesh(this.geoWedgeHead, this.matCastSteel);
         headBotR.rotation.y = Math.PI;
         headBotR.position.x = length;
         group.add(headBotR);
         
-        // Górna
         const headTopR = headBotR.clone();
         headTopR.position.y = trussH;
         group.add(headTopR);

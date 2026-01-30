@@ -7,7 +7,7 @@ export class ProlyteH40V {
 
     initMaterials() {
         this.matAlu = new THREE.MeshStandardMaterial({
-            color: 0xeef1f5, // Nieco jaśniejsze alu
+            color: 0xeef1f5, 
             metalness: 0.6,
             roughness: 0.35
         });
@@ -18,21 +18,15 @@ export class ProlyteH40V {
         });
     }
 
-    /**
-     * Tworzy segment kratownicy H40V (39x39cm)
-     * @param {number} length - Długość segmentu
-     */
     create(length) {
         const group = new THREE.Group();
         
-        // Wymiary Prolyte H40V
-        const size = 0.39; // 390mm
-        const mainTubeR = 0.024; // 48mm
-        const braceTubeR = 0.010; // Zastrzały 20mm (grubsze niż w H30)
+        const size = 0.39;
+        const mainTubeR = 0.024; 
+        const braceTubeR = 0.010; 
         const half = size / 2;
 
-        // 1. Rury główne
-        const chordGeo = new THREE.CylinderGeometry(mainTubeR, mainTubeR, length, 16); // Więcej segmentów dla ładniejszego wyglądu
+        const chordGeo = new THREE.CylinderGeometry(mainTubeR, mainTubeR, length, 16); 
         const positions = [
             [-half, -half], [half, -half],
             [-half, half],  [half, half]
@@ -49,18 +43,15 @@ export class ProlyteH40V {
             this._addCoupler(group, length, pos[1], pos[0]);
         });
 
-        // 2. Drabinka (Ladder) na końcach segmentu (charakterystyczne dla H40)
-        // H40V ma często poprzeczkę na samym końcu przed złączem
         this._addEndFrame(group, 0, size, braceTubeR);
         this._addEndFrame(group, length, size, braceTubeR);
 
-        // 3. Zastrzały
         this._createBracing(group, length, size, braceTubeR);
 
         group.userData = {
             type: 'ProlyteH40V',
             length: length,
-            weight: length * 8.5 // ~8.5kg/m
+            weight: length * 8.5 
         };
 
         return group;
@@ -78,7 +69,6 @@ export class ProlyteH40V {
         const half = size / 2;
         const barGeo = new THREE.CylinderGeometry(r, r, size, 8);
         
-        // Pionowe
         const v1 = new THREE.Mesh(barGeo, this.matAlu);
         v1.position.set(x, 0, -half);
         group.add(v1);
@@ -87,7 +77,6 @@ export class ProlyteH40V {
         v2.position.set(x, 0, half);
         group.add(v2);
 
-        // Poziome
         const h1 = new THREE.Mesh(barGeo, this.matAlu);
         h1.rotation.x = Math.PI / 2;
         h1.position.set(x, -half, 0);
@@ -100,7 +89,6 @@ export class ProlyteH40V {
     }
 
     _createBracing(group, length, size, r) {
-        // Dłuższy skok dla H40V (ok 0.5m)
         const steps = Math.ceil(length / 0.5); 
         const stepLen = length / steps;
         const half = size / 2;

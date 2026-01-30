@@ -1,7 +1,6 @@
 import * as THREE from 'three';
-import { MPTStandard } from './MPTStandard.js'; // To jest w tym samym folderze, więc ./ jest OK
+import { MPTStandard } from './MPTStandard.js'; 
 
-// ZMIANA: Wychodzimy z 'prolyte' (../) i wchodzimy do 'layher'
 import { LayherPartsBase } from '../layher/LayherPartsBase.js'; 
 
 export class MPTLayherBase extends MPTStandard {
@@ -10,7 +9,6 @@ export class MPTLayherBase extends MPTStandard {
         this.lp = new LayherPartsBase();
     }
     
-    // ... reszta metody build() bez zmian ...
     build(config) {
         this.clear();
         const W = parseFloat(config.width) || 12.0;

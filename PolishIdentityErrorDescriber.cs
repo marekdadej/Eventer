@@ -2,10 +2,8 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Eventer
 {
-    // Ta klasa służy do tłumaczenia systemowych błędów Identity na polski
     public class PolishIdentityErrorDescriber : IdentityErrorDescriber
     {
-        // Błąd: Nazwa użytkownika/Email zajęty
         public override IdentityError DuplicateUserName(string userName)
         {
             return new IdentityError
@@ -24,7 +22,6 @@ namespace Eventer
             };
         }
 
-        // Błąd: Hasło zbyt krótkie
         public override IdentityError PasswordTooShort(int length)
         {
             return new IdentityError
@@ -34,7 +31,6 @@ namespace Eventer
             };
         }
 
-        // Błąd: Hasło nie ma cyfry
         public override IdentityError PasswordRequiresDigit()
         {
             return new IdentityError
@@ -44,7 +40,6 @@ namespace Eventer
             };
         }
 
-        // Błąd: Hasło nie ma dużej litery
         public override IdentityError PasswordRequiresUpper()
         {
             return new IdentityError
@@ -54,7 +49,6 @@ namespace Eventer
             };
         }
         
-        // Błąd: Hasło nie ma znaku specjalnego
         public override IdentityError PasswordRequiresNonAlphanumeric()
         {
              return new IdentityError

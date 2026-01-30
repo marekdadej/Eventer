@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-// POPRAWKA 1: Importujemy wszystko jako 'BufferGeometryUtils'
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 export class LayherPartsBase {
@@ -62,7 +61,7 @@ export class LayherPartsBase {
         });
         this.matSticker = new THREE.MeshBasicMaterial({ color: 0xffffff });
         this.matStickerRed = new THREE.MeshBasicMaterial({ color: 0xcc0000 });
-        this.matCoupler = this.matCastSteel; // Alias dla złączy
+        this.matCoupler = this.matCastSteel; 
     }
 
     initGeometries() {
@@ -78,11 +77,8 @@ export class LayherPartsBase {
         this.geoWingNut = this._buildWingNutGeo();
         this.geoPerforationHole = new THREE.CylinderGeometry(0.005, 0.005, 0.04, 8);
         
-        // Złącze stałe (półzłącze) używane np. w OProfileConnector
         this.geoCoupler = this._buildSwivelCouplerGeo(); 
     }
-
-    // --- Helpery (Metody pomocnicze używane przez klasy potomne) ---
 
     _addWedgeHeads(group, length, rotated = false) {
         const hL = new THREE.Mesh(this.geoWedgeHead, this.matCastSteel);
@@ -122,8 +118,6 @@ export class LayherPartsBase {
         mesh.lookAt(v2);
         group.add(mesh);
     }
-
-    // --- Buildery Geometrii ---
 
     _buildRosetteGeo() {
         const outerR = 0.055;
@@ -224,7 +218,6 @@ export class LayherPartsBase {
         handle2.applyMatrix4(new THREE.Matrix4().makeRotationY(Math.PI / 2));
         geometries.push(handle2);
         
-        // POPRAWKA 2: Zmiana nazwy funkcji na mergeGeometries
         return BufferGeometryUtils.mergeGeometries(geometries);
     }
 
@@ -239,7 +232,6 @@ export class LayherPartsBase {
         bolt.translate(0, 0.04, 0);
         geometries.push(bolt);
         
-        // POPRAWKA 2: Zmiana nazwy funkcji na mergeGeometries
         return BufferGeometryUtils.mergeGeometries(geometries);
     }
 }

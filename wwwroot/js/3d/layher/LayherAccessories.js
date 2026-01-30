@@ -1,15 +1,11 @@
 import * as THREE from 'three';
 import { LayherPartsBase } from './LayherCore.js';
 
-/**
- * LayherAccessories - Akcesoria, schody i elementy złączne.
- */
 export class LayherAccessories extends LayherPartsBase {
     constructor() {
         super();
     }
 
-    // 1. U-belka policzkowa 500 LW
     createStringerStairs500(stepsVariant = '5steps') {
         const group = new THREE.Group();
         const data = stepsVariant === '5steps' 
@@ -55,7 +51,6 @@ export class LayherAccessories extends LayherPartsBase {
         return group;
     }
 
-    // 2. U-schody podestowe aluminiowe
     createPlatformStairs(length, height = 2.0) {
         const group = new THREE.Group();
         const dataMap = {
@@ -103,7 +98,6 @@ export class LayherAccessories extends LayherPartsBase {
         return group;
     }
 
-    // 3. Belka bazowa
     createBaseBeam(length = 2.07) {
         const group = new THREE.Group();
         const beamGeo = new THREE.BoxGeometry(length, 0.2, 0.1);
@@ -114,7 +108,6 @@ export class LayherAccessories extends LayherPartsBase {
         return group;
     }
 
-    // 4. Trawersa Truss
     createTrussTravers(length = 2.07) {
         const group = new THREE.Group();
         const trussGeo = new THREE.BoxGeometry(length, 0.4, 0.2);
@@ -125,7 +118,6 @@ export class LayherAccessories extends LayherPartsBase {
         return group;
     }
 
-    // 5. Płyta podstawy typ 1
     createBasePlateType1() {
         const group = new THREE.Group();
         const size = 0.41;
@@ -148,7 +140,6 @@ export class LayherAccessories extends LayherPartsBase {
         return group;
     }
 
-    // 6. Łącznik rurowy do U-profili (pomocniczy)
     createUProfileConnector(withPins = false) {
         const group = new THREE.Group();
         const length = withPins ? 2.1 : 1.8;
@@ -164,7 +155,6 @@ export class LayherAccessories extends LayherPartsBase {
         return group;
     }
 
-    // 7. Łącznik rurowy do O-profili (pomocniczy)
     createOProfileConnector(diameter = 19) {
         const group = new THREE.Group();
         const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.3, 16), this.matGalvNew);
@@ -177,33 +167,23 @@ export class LayherAccessories extends LayherPartsBase {
         return group;
     }
 
-    // ==========================================
-    // NOWE ELEMENTY (SCENA WYSOKA / BARIERKI)
-    // ==========================================
-
-    /**
-     * 8. Łącznik rurowy (Spigot) - Czop 214.000
-     */
     createSpigotConnector(withBolt = true) {
         const group = new THREE.Group();
         const catalogNumber = '214.000'; 
         const weight = 1.6;
 
-        // Rura czopa (fi ~38mm)
         const tube = new THREE.Mesh(
             new THREE.CylinderGeometry(0.019, 0.019, 0.52, 16),
             this.matGalvNew
         );
         group.add(tube);
 
-        // Pierścień oporowy
         const ring = new THREE.Mesh(
             new THREE.CylinderGeometry(0.023, 0.023, 0.005, 16),
             this.matGalvNew
         );
         group.add(ring);
 
-        // Otwory
         if (withBolt) {
             const holeMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
             const holeGeo = new THREE.CylinderGeometry(0.006, 0.006, 0.05, 8);
@@ -222,9 +202,6 @@ export class LayherAccessories extends LayherPartsBase {
         return group;
     }
 
-    /**
-     * 9. Zawleczka sprężysta ("Świńskie ucho") - 4000.001
-     */
     createRedLockingPin() {
         const group = new THREE.Group();
         const catalogNumber = '4000.001'; 
@@ -248,9 +225,6 @@ export class LayherAccessories extends LayherPartsBase {
         return group;
     }
 
-    /**
-     * 10. Śruba specjalna M12 x 60 z nakrętką 19 - 4905.062
-     */
     createSpecialBoltM12() {
         const group = new THREE.Group();
         const catalogNumber = '4905.062';
